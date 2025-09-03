@@ -22,16 +22,16 @@ Route::prefix('auth')->group(function () {
     Route::get('google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
-Route::middleware('auth:sanctum')->prefix('/cart')->group(function () {
+Route::prefix('/cart')->group(function () {
     Route::post('add', [CartController::class, 'addToCart']);
-    Route::get('list', [CartController::class, 'getCart']);
-    Route::post('increment', [CartController::class, 'increment']);
-    Route::post('decrement', [CartController::class, 'decrement']);
-    Route::delete('remove/{id}', [CartController::class, 'remove']);
+    // Route::get('list', [CartController::class, 'getCart']);
+    // Route::post('increment', [CartController::class, 'increment']);
+    // Route::post('decrement', [CartController::class, 'decrement']);
+    // Route::delete('remove/{id}', [CartController::class, 'remove']);
 });
 
 // voucher apply
-Route::post('/apply-voucher', [MasterAPIController::class, 'applyVoucher'])->middleware('auth:sanctum');
+Route::post('/apply-voucher', [MasterAPIController::class, 'applyVoucher']);
 
 // Category
 Route::get('/categories', [MasterAPIController::class, 'categories']);
@@ -69,3 +69,6 @@ Route::get('cost/{destination}/{weight}/{courier}', [RajaongkirController::class
 
 // Transaction
 Route::post('/transaction', [TransactionController::class, 'createTransaction']);
+Route::get('/transaction', [TransactionController::class, 'getTransactionUser'])->middleware('auth:sanctum');
+// Callback Midtrans
+Route::post('/midtrans/callback', [TransactionController::class, 'callback']);

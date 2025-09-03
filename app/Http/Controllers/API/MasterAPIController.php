@@ -20,6 +20,8 @@ use App\Models\Reseller;
 use App\Models\Tutorial;
 use App\Models\Variant;
 use App\Models\Voucher;
+use App\Models\VoucherProduct;
+use App\Models\VoucherUsage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -218,7 +220,6 @@ class MasterAPIController extends Controller
     public function applyVoucher(Request $request)
     {
         $voucher = Voucher::where('code', $request->code)->first();
-        $user = Auth::user();
 
         // 1. Cek voucher ada
         if (!$voucher) {
@@ -239,7 +240,7 @@ class MasterAPIController extends Controller
         if ($voucher->target !== 'all') {
 
             // voucher users
-            $voucherUsers = $voucher->users()->where('user_id', $user->id)->first();
+            $voucherUsers = $voucher->users()->where('user_id', $request->user_id)->first();
 
             if (!$voucherUsers) {
                 return response()->json([
@@ -258,26 +259,37 @@ class MasterAPIController extends Controller
         }
 
         // 5. Cek kuota
-        if ($voucher->limit && $voucher->used >= $voucher->limit) {
+        $limit = VoucherUsage::where('voucher_id', $voucher->id)->where('user_id', $request->user_id)->count();
+        if ($limit >= $voucher->limit) {
             return response()->json([
                 'success' => false,
                 'message' => 'Voucher usage limit reached',
             ], 400);
         }
 
-        // Kalau pakai kuota per user
-        // if ($user && $voucher->max_usage_per_user) {
-        //     $userUsage = VoucherUsage::where('voucher_id', $voucher->id)
-        //         ->where('user_id', $user->id)
-        //         ->count();
 
-        //     if ($userUsage >= $voucher->max_usage_per_user) {
-        //         return response()->json([
-        //             'success' => false,
-        //             'message' => 'You have reached the limit for this voucher',
-        //         ], 400);
-        //     }
-        // }
+        // 6. Voucher untuk product
+        if ($voucher->type === 'product') {
+            $found = false;
+
+            foreach ($request->product as $item) {
+                $voucherProduct = VoucherProduct::where('variantsize_id', $item['id'])
+                    ->where('voucher_id', $voucher->id)
+                    ->first();
+                if ($voucherProduct) {
+                    $found = true;
+                    break; // cukup 1 product cocok
+                }
+            }
+
+            if (!$found) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product not found in voucher',
+                ], 400);
+            }
+        }
+
 
         // Jika semua valid
         return response()->json([

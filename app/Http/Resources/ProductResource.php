@@ -14,7 +14,10 @@ class ProductResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $smallestSize = $this->sizes->sortBy('label')->first();
+        $smallestSize = $this->sizes
+            ->load('size')
+            ->sortBy(fn($variant) => (int) $variant->size->label)
+            ->first();
 
         return [
             'id'             => $this->id,
@@ -22,8 +25,6 @@ class ProductResource extends JsonResource
             'slug'           => $this->slug,
             'category'       => $this->category->name ?? null,
             'image'          => $this->images()->first()->image_path ?? null,
-            // 'size'           => $smallestSize?->size->label,
-            // 'unit'           => $smallestSize?->size->unit,
             'price'          => $smallestSize?->price,
             'discount'       => $smallestSize?->discount,
             'price_discount' => $smallestSize?->price_after_discount,

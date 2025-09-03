@@ -10,6 +10,7 @@ use App\Http\Controllers\CategoryTutorialController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\FlavourController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
@@ -32,6 +33,10 @@ Route::patch('benefits/{benefit}/toggle-status', [BenefitController::class, 'tog
 Route::get('partners', [PartnerController::class, 'index'])->name('partners.index');
 
 Route::resource('promotions', PromotionController::class);
+
+Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+Route::get('orders/pickup', [OrderController::class, 'pickup'])->name('orders.pickup');
+Route::post('orders/pickup', [OrderController::class, 'pickupStore'])->name('orders.pickup.store');
 
 Route::resource('vouchers', VoucherController::class);
 

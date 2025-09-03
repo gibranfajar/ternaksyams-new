@@ -109,7 +109,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-12 col-xl-8">
+                <div class="col-md-12">
                     <h5 class="mb-3">Recent Orders</h5>
                     <div class="card tbl-card">
                         <div class="card-body">
@@ -218,94 +218,6 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12 col-xl-4">
-                    <h5 class="mb-3">Analytics Report</h5>
-                    <div class="card">
-                        <div class="list-group list-group-flush">
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Company
-                                Finance Growth<span class="h5 mb-0">+45.14%</span></a>
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Company
-                                Expenses Ratio<span class="h5 mb-0">0.58%</span></a>
-                            <a href="#"
-                                class="list-group-item list-group-item-action d-flex align-items-center justify-content-between">Business
-                                Risk Cases<span class="h5 mb-0">Low</span></a>
-                        </div>
-                        <div class="card-body px-2">
-                            <div id="analytics-report-chart"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-12 col-xl-8">
-                    <h5 class="mb-3">Sales Report</h5>
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="mb-2 f-w-400 text-muted">This Week Statistics</h6>
-                            <h3 class="mb-0">$7,650</h3>
-                            <div id="sales-report-chart"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12 col-xl-4">
-                    <h5 class="mb-3">Transaction History</h5>
-                    <div class="card">
-                        <div class="list-group list-group-flush">
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        <div class="avtar avtar-s rounded-circle text-success bg-light-success">
-                                            <i class="ti ti-gift f-18"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-1">Order #002434</h6>
-                                        <p class="mb-0 text-muted">Today, 2:00 AM</P>
-                                    </div>
-                                    <div class="flex-shrink-0 text-end">
-                                        <h6 class="mb-1">+ $1,430</h6>
-                                        <p class="mb-0 text-muted">78%</P>
-                                    </div>
-                                </div>
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        <div class="avtar avtar-s rounded-circle text-primary bg-light-primary">
-                                            <i class="ti ti-message-circle f-18"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-1">Order #984947</h6>
-                                        <p class="mb-0 text-muted">5 August, 1:45 PM</P>
-                                    </div>
-                                    <div class="flex-shrink-0 text-end">
-                                        <h6 class="mb-1">- $302</h6>
-                                        <p class="mb-0 text-muted">8%</P>
-                                    </div>
-                                </div>
-                            </a>
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex">
-                                    <div class="flex-shrink-0">
-                                        <div class="avtar avtar-s rounded-circle text-danger bg-light-danger">
-                                            <i class="ti ti-settings f-18"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <h6 class="mb-1">Order #988784</h6>
-                                        <p class="mb-0 text-muted">7 hours ago</P>
-                                    </div>
-                                    <div class="flex-shrink-0 text-end">
-                                        <h6 class="mb-1">- $682</h6>
-                                        <p class="mb-0 text-muted">16%</P>
-                                    </div>
-                                </div>
-                            </a>
                         </div>
                     </div>
                 </div>

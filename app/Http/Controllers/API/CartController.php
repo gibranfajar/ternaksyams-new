@@ -15,254 +15,199 @@ class CartController extends Controller
     /*
      * Add product to cart
      * @param product_id
+     * @param qty
      */
     public function addToCart(Request $request)
     {
         $request->validate([
+            'user_id'    => 'nullable|integer',
             'product_id' => 'required|integer',
+            'qty'        => 'required|integer',
         ]);
 
         try {
-            $user = Auth::user();
+            // Ambil atau buat cart aktif untuk user
+            $cart = Cart::firstOrCreate(
+                ['user_id' => $request->user_id],
+                ['session' => $request->cookie('guest_token')],
+                ['created_at' => now()]
+            );
 
-            // Ambil variant size
-            $variant = VariantSize::find($request->product_id);
-            if (!$variant) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Variant not found.'
-                ], 404);
-            }
+            // Cek variant
+            $variant = VariantSize::where('id', $request->product_id)->firstOrFail();
 
-            // Hitung harga setelah diskon
-            $priceAfterDiscount = $variant->type_disc === 'percent'
-                ? $variant->price - ($variant->price * $variant->discount / 100)
-                : $variant->price - $variant->discount;
+            // Tambahkan item ke cart_items
+            CartItem::create([
+                'cart_id'        => $cart->id,
+                'variantsize_id' => $variant->id,
+                'qty'            => $request->qty,
+                'discount'       => $variant->discount,
+                'original_price' => $variant->price,
+                'price'          => $variant->discount != 0 ? $variant->price_after_discount : $variant->price,
+            ]);
 
-            // ===== Buat / Ambil Cart =====
-            if ($user) {
-                // Cek cart aktif user
-                $cart = Cart::where('user_id', $user->id)
-                    ->where('status', 'active')
-                    ->first();
-
-                if (!$cart) {
-                    $cart = Cart::create([
-                        'user_id' => $user->id,
-                        'status'  => 'active',
-                    ]);
-                }
-            } else {
-                // Guest pakai cookie guest_token
-                $guestToken = $request->cookie('guest_token');
-                if (!$guestToken) {
-                    $guestToken = bin2hex(random_bytes(16));
-                }
-
-                $cart = Cart::where('session', $guestToken)
-                    ->where('status', 'active')
-                    ->first();
-
-                if (!$cart) {
-                    $cart = Cart::create([
-                        'session' => $guestToken,
-                        'status'  => 'active',
-                    ]);
-                }
-            }
-
-            // ===== Tambahkan / Update Item =====
-            $existingItem = CartItem::where('cart_id', $cart->id)
-                ->where('variantsize_id', $variant->id)
-                ->first();
-
-            if ($existingItem) {
-                // Update qty + price total
-                $newQty = $existingItem->qty + 1;
-                $existingItem->update([
-                    'qty'   => $newQty,
-                    'price' => $priceAfterDiscount * $newQty,
-                ]);
-                $cartItem = $existingItem;
-            } else {
-                // Insert baru
-                $cartItem = CartItem::create([
-                    'cart_id'        => $cart->id,
-                    'variantsize_id' => $variant->id,
-                    'qty'            => 1,
-                    'original_price' => $variant->price,
-                    'price'          => $priceAfterDiscount,
-                ]);
-            }
-
-            // ===== Response =====
-            $response = response()->json([
-                'message' => 'Product added to cart successfully.'
-            ], 200);
-
-            // Tambahkan cookie kalau guest
-            if (!$user) {
-                $response->cookie('guest_token', $guestToken, 60 * 24 * 30); // 30 hari
-            }
-
-            return $response;
+            return response()->json([
+                'cart_id' => $cart->id,
+                'session' => $cart->session,
+                'message' => 'Product added to cart successfully.',
+            ]);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Failed to add product to cart.',
                 'error'   => $e->getMessage(),
             ], 500);
         }
     }
 
-
     /*
      * Get cart
      */
-    public function getCart(Request $request)
-    {
-        try {
-            $user = Auth::user();
+    // public function getCart(Request $request)
+    // {
+    //     try {
+    //         $user = Auth::user();
 
-            // Ambil cart
-            if ($user) {
-                $cart = CartItem::whereHas('cart', function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                        ->where('status', 'active');
-                })->get();
+    //         // Ambil cart
+    //         if ($user) {
+    //             $cart = CartItem::whereHas('cart', function ($q) use ($user) {
+    //                 $q->where('user_id', $user->id)
+    //                     ->where('status', 'active');
+    //             })->get();
 
-                $cartId = optional($cart->first()->cart)->id;
-                $data = CartResource::collection($cart);
-            } else {
-                $guestToken = $request->cookie('guest_token');
-                $cart = Cart::where('session', $guestToken)->where('status', 'active')->first();
-            }
+    //             $cartId = optional($cart->first()->cart)->id;
+    //             $data = CartResource::collection($cart);
+    //         } else {
+    //             $guestToken = $request->cookie('guest_token');
+    //             $cart = Cart::where('session', $guestToken)->where('status', 'active')->first();
+    //         }
 
-            return response()->json([
-                'success' => true,
-                'cart_id'    => $cartId,
-                'data'    => $data,
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get cart.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'cart_id'    => $cartId,
+    //             'data'    => $data,
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to get cart.',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     /*
      * Increment cart
      */
-    public function increment(Request $request)
-    {
-        try {
-            $user = Auth::user();
+    // public function increment(Request $request)
+    // {
+    //     try {
+    //         $user = Auth::user();
 
-            // Ambil cart
-            if ($user) {
-                $cart = CartItem::findorFail($request->id);
-            } else {
-                $guestToken = $request->cookie('guest_token');
-                $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
-                    $q->where('session', $guestToken)->where('status', 'active');
-                });
-            }
+    //         // Ambil cart
+    //         if ($user) {
+    //             $cart = CartItem::findorFail($request->id);
+    //         } else {
+    //             $guestToken = $request->cookie('guest_token');
+    //             $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
+    //                 $q->where('session', $guestToken)->where('status', 'active');
+    //             });
+    //         }
 
-            if ($cart) {
-                $cart->update([
-                    'qty' => $cart->qty + 1,
-                    'price' => $cart->original_price * ($cart->qty + 1)
-                ]);
-            }
+    //         if ($cart) {
+    //             $cart->update([
+    //                 'qty' => $cart->qty + 1,
+    //                 'price' => $cart->original_price * ($cart->qty + 1)
+    //             ]);
+    //         }
 
-            return response()->json([
-                'success' => true,
-                'message'    => 'Cart updated successfully.',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get cart.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message'    => 'Cart updated successfully.',
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to get cart.',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     /*
      * Decrement cart
      */
-    public function decrement(Request $request)
-    {
-        try {
-            $user = Auth::user();
+    // public function decrement(Request $request)
+    // {
+    //     try {
+    //         $user = Auth::user();
 
-            // Ambil cart
-            if ($user) {
-                $cart = CartItem::findorFail($request->id);
-            } else {
-                $guestToken = $request->cookie('guest_token');
-                $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
-                    $q->where('session', $guestToken)->where('status', 'active');
-                });
-            }
+    //         // Ambil cart
+    //         if ($user) {
+    //             $cart = CartItem::findorFail($request->id);
+    //         } else {
+    //             $guestToken = $request->cookie('guest_token');
+    //             $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
+    //                 $q->where('session', $guestToken)->where('status', 'active');
+    //             });
+    //         }
 
-            if ($cart) {
-                if ($cart->qty > 1) {
-                    $cart->update([
-                        'qty' => $cart->qty - 1,
-                        'price' => $cart->original_price * ($cart->qty - 1)
-                    ]);
-                } else {
-                    $cart->delete();
-                }
-            }
+    //         if ($cart) {
+    //             if ($cart->qty > 1) {
+    //                 $cart->update([
+    //                     'qty' => $cart->qty - 1,
+    //                     'price' => $cart->original_price * ($cart->qty - 1)
+    //                 ]);
+    //             } else {
+    //                 $cart->delete();
+    //             }
+    //         }
 
-            return response()->json([
-                'success' => true,
-                'message'    => 'Cart updated successfully.',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get cart.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message'    => 'Cart updated successfully.',
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to get cart.',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
     /*
      * Remove cart
      */
-    public function remove(Request $request, $id)
-    {
-        try {
-            $user = Auth::user();
+    // public function remove(Request $request, $id)
+    // {
+    //     try {
+    //         $user = Auth::user();
 
-            // Ambil cart
-            if ($user) {
-                $cart = CartItem::findorFail($id);
-            } else {
-                $guestToken = $request->cookie('guest_token');
-                $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
-                    $q->where('session', $guestToken)->where('status', 'active');
-                });
-            }
+    //         // Ambil cart
+    //         if ($user) {
+    //             $cart = CartItem::findorFail($id);
+    //         } else {
+    //             $guestToken = $request->cookie('guest_token');
+    //             $cart = CartItem::whereHas('cart', function ($q) use ($guestToken) {
+    //                 $q->where('session', $guestToken)->where('status', 'active');
+    //             });
+    //         }
 
-            if ($cart) {
-                $cart->delete();
-            }
+    //         if ($cart) {
+    //             $cart->delete();
+    //         }
 
-            return response()->json([
-                'success' => true,
-                'message'    => 'Cart deleted successfully.',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get cart.',
-                'error'   => $e->getMessage(),
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message'    => 'Cart deleted successfully.',
+    //         ], 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Failed to get cart.',
+    //             'error'   => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('sizes', function (Blueprint $table) {
             $table->id();
-            $table->string('label')->unique();
+            $table->integer('label')->unique();
             $table->string('unit')->default('gr');
             $table->timestamps();
         });

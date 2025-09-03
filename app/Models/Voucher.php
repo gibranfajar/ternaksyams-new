@@ -19,4 +19,9 @@ class Voucher extends Model
     {
         return $this->belongsToMany(VariantSize::class, 'voucher_products', 'voucher_id', 'variantsize_id');
     }
+
+    public function used()
+    {
+        return $this->hasMany(VoucherUsage::class, 'voucher_id', 'id');
+    }
 }

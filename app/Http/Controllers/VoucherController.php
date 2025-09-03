@@ -93,8 +93,14 @@ class VoucherController extends Controller
             });
 
             return redirect()->route('vouchers.index')->with('success', 'Voucher created successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Cek kode error SQLSTATE
+            if ($e->getCode() === '23505') {
+                return redirect()->route('vouchers.index')->with('error', 'Voucher code already exists.');
+            }
+
+            return redirect()->route('vouchers.index')->with('error', 'Failed to create voucher.');
         } catch (\Throwable $th) {
-            throw $th;
             return redirect()->route('vouchers.index')->with('error', 'Failed to create voucher.');
         }
     }
@@ -220,9 +226,15 @@ class VoucherController extends Controller
             });
 
             return redirect()->route('vouchers.index')->with('success', 'Voucher updated successfully.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Cek kode error SQLSTATE
+            if ($e->getCode() === '23505') {
+                return redirect()->route('vouchers.index')->with('error', 'Voucher code already exists.');
+            }
+
+            return redirect()->route('vouchers.index')->with('error', 'Failed to create voucher.');
         } catch (\Throwable $th) {
-            throw $th;
-            return redirect()->route('vouchers.index')->with('error', 'Failed to update voucher.');
+            return redirect()->route('vouchers.index')->with('error', 'Failed to create voucher.');
         }
     }
 

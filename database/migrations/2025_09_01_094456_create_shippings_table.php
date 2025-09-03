@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('shipping_options_id')->constrained('shipping_options')->onDelete('cascade');
             $table->foreignId('shipping_information_id')->constrained('shipping_informations')->onDelete('cascade');
+            $table->integer('weight');
             $table->string('order_number')->nullable();
             $table->string('receipt_number')->nullable();
             $table->enum('status', ['packaging', 'sent', 'return done', 'return', 'received'])->default('packaging');

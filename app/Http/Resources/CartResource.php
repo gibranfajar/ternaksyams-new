@@ -25,7 +25,8 @@ class CartResource extends JsonResource
             'price'             => $this->price,
             'discount'          => $this->discount,
             'type_discount'     => $this->discount_type,
-            'is_sale'           => $this->is_sale
+            'is_sale'           => $this->is_sale,
+            'weight'            => intval($this->variantsize->size->label * $this->qty),
         ];
     }
 }

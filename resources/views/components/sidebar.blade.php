@@ -2,7 +2,7 @@
     <div class="navbar-wrapper">
         <div class="m-header">
             <a href="{{ route('dashboard') }}" class="b-brand text-primary">
-                <img src="{{ asset('assets/images/logo-dark.svg') }}" class="img-fluid logo-lg" alt="logo">
+                <img src="{{ asset('assets/images/logo.png') }}" class="img-fluid logo-lg" alt="logo">
             </a>
         </div>
         <div class="navbar-content">
@@ -39,6 +39,13 @@
                     <a href="{{ route('flash-sales.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-shopping-cart-discount"></i></span>
                         <span class="pc-mtext">Flash Sale</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('orders.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-shopping-cart"></i></span>
+                        <span class="pc-mtext">orders</span>
                     </a>
                 </li>
 
