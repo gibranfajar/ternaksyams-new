@@ -21,7 +21,8 @@
                                 <input type="password" class="form-control" name="password" placeholder="Password" required>
                             </div>
                             <div class="d-grid mt-4">
-                                <button type="submit" class="btn btn-primary">Login</button>
+                                <button type="submit" class="btn"
+                                    style="background-color: #256830; color: #fff">Login</button>
                             </div>
                         </form>
                     </div>

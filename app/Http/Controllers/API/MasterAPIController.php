@@ -10,6 +10,7 @@ use App\Http\Resources\ProductResource;
 use App\Http\Resources\PromotionResource;
 use App\Http\Resources\TutorialResource;
 use App\Http\Resources\VariantResource;
+use App\Models\About;
 use App\Models\Affiliator;
 use App\Models\Article;
 use App\Models\Benefit;
@@ -18,6 +19,7 @@ use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Reseller;
 use App\Models\Tutorial;
+use App\Models\User;
 use App\Models\Variant;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
@@ -28,6 +30,31 @@ use Illuminate\Support\Facades\DB;
 
 class MasterAPIController extends Controller
 {
+    /**
+     * Get User Info Authentication
+     */
+    public function getUser()
+    {
+        $user = Auth::user();
+        $data = User::with('profile')->where('id', $user->id)->first();
+        $json = [
+            'id' => $data->id,
+            'name' => $data->name,
+            'email' => $data->email,
+            'email_verified_at' => $data->email_verified_at,
+            'role' => $data->role,
+            'google_id' => $data->google_id,
+            'whatsapp' => $data->profile->whatsapp,
+            'address' => $data->address,
+            'province' => $data->profile->province,
+            'city' => $data->profile->city,
+            'district' => $data->profile->district,
+            'postal_code' => $data->profile->postal_code,
+        ];
+
+        return response()->json($json, 200);
+    }
+
     /*
      * Create Resellers Account
      */
@@ -303,5 +330,23 @@ class MasterAPIController extends Controller
                 'min_transaction' => $voucher->min_transaction_value
             ],
         ], 200);
+    }
+
+    public function abouts()
+    {
+        $about = About::with([
+            'partnerSection',
+            'whyUsFeatures',
+            'profileSection'
+        ])->first();
+
+        if (!$about) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data About belum tersedia.'
+            ], 404);
+        }
+
+        return response()->json($about, 200);
     }
 }

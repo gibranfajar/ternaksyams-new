@@ -70,6 +70,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
+            'id' => $user->id,
             'user' => $user->name,
             'token' => $token,
             'token_type' => 'Bearer',
@@ -123,6 +124,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Login with Google success',
                 'user'    => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                 ],

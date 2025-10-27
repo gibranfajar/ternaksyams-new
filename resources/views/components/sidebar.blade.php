@@ -89,6 +89,13 @@
                     </a>
                 </li>
 
+                <li class="pc-item">
+                    <a href="{{ route('abouts.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Abouts</span>
+                    </a>
+                </li>
+
                 <li class="pc-item pc-hasmenu">
                     <a class="pc-link">
                         <span class="pc-micon"><i class="ti ti-notebook"></i></span>

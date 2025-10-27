@@ -4,14 +4,10 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\Article;
 
 class ArticleResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
@@ -23,6 +19,15 @@ class ArticleResource extends JsonResource
             'content'   => $this->content,
             'thumbnail' => asset('storage/' . $this->thumbnail),
             'status'    => $this->status,
+
+            // Ambil related articles tanpa recursion
+            'related'   => Article::where('id', '!=', $this->id)
+                ->latest()
+                ->get(['id', 'title', 'slug', 'thumbnail'])
+                ->map(function ($item) {
+                    $item->thumbnail = asset('storage/' . $item->thumbnail);
+                    return $item;
+                }),
         ];
     }
 }

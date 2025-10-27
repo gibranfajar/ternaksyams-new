@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BenefitController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+Route::resource('abouts', AboutController::class);
 Route::resource('categories', CategoryController::class);
 Route::resource('flavours', FlavourController::class);
 Route::resource('sizes', SizeController::class);

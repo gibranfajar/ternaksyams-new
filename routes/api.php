@@ -5,12 +5,9 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\MasterAPIController;
 use App\Http\Controllers\API\RajaongkirController;
 use App\Http\Controllers\API\TransactionController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::get('/user', [MasterAPIController::class, 'getUser'])->middleware('auth:sanctum');
 
 // Authentication
 Route::prefix('auth')->group(function () {
@@ -22,9 +19,11 @@ Route::prefix('auth')->group(function () {
     Route::get('google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
+Route::get('/abouts', [MasterAPIController::class, 'abouts']);
+
 Route::prefix('/cart')->group(function () {
     Route::post('add', [CartController::class, 'addToCart']);
-    // Route::get('list', [CartController::class, 'getCart']);
+    Route::post('list', [CartController::class, 'getCart']);
     // Route::post('increment', [CartController::class, 'increment']);
     // Route::post('decrement', [CartController::class, 'decrement']);
     // Route::delete('remove/{id}', [CartController::class, 'remove']);

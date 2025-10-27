@@ -16,7 +16,7 @@ class VariantProductSizesResource extends JsonResource
     {
         return [
             'id'            => $this->id,
-            'size'          => $this->size->label . ' ' . $this->size->unit,
+            'size'          => $this->size->label,
             'price'         => $this->price,
             'discount'      => $this->discount,
             'price_discount' => $this->price_after_discount

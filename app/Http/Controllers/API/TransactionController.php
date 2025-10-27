@@ -185,7 +185,8 @@ class TransactionController extends Controller
             DB::commit();
 
             return response()->json([
-                'message' => 'success',
+                'message'    => 'success',
+                'invoice'    => $invoice,
                 'snap_token' => $snapToken,
             ]);
         } catch (\Throwable $th) {
