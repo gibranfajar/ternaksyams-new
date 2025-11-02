@@ -19,6 +19,10 @@ Route::prefix('auth')->group(function () {
     Route::get('google/callback', [AuthController::class, 'handleGoogleCallback']);
 });
 
+// Forgot Password
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
 Route::get('/abouts', [MasterAPIController::class, 'abouts']);
 
 Route::prefix('/cart')->group(function () {
@@ -31,6 +35,7 @@ Route::prefix('/cart')->group(function () {
 
 // voucher apply
 Route::post('/apply-voucher', [MasterAPIController::class, 'applyVoucher']);
+Route::get('/vouchers', [MasterAPIController::class, 'myVouchers'])->middleware('auth:sanctum');
 
 // Category
 Route::get('/categories', [MasterAPIController::class, 'categories']);

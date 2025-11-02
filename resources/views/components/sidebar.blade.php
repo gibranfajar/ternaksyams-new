@@ -29,6 +29,13 @@
                 </li>
 
                 <li class="pc-item">
+                    <a href="{{ route('brands.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-box"></i></span>
+                        <span class="pc-mtext">Brand Variant</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
                     <a href="{{ route('products.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-box"></i></span>
                         <span class="pc-mtext">Products</span>

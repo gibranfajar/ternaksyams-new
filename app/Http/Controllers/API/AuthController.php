@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ResetPasswordMail;
+use App\Mail\TestEmail;
 use App\Models\Cart;
 use App\Models\User;
 use App\Models\UserProfile;
+use Carbon\Carbon;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -114,28 +120,73 @@ class AuthController extends Controller
                 $user = User::create([
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
-                    'password' => Hash::make(date(now())),
+                    'password' => Hash::make(now()), // kecilkan saja date(now())
                 ]);
             }
 
-            // Buat token sanctum
+            // Buat token Sanctum
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            return response()->json([
-                'message' => 'Login with Google success',
-                'user'    => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'token'   => $token,
-                'token_type' => 'Bearer',
-            ], 200);
+            // Redirect ke frontend React kamu (ubah URL-nya sesuai environment)
+            $frontendUrl = env('FRONTEND_URL', 'https://frontendkamu.com');
+
+            return redirect()->away($frontendUrl . '/callback?token=' . $token);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Unauthorized',
                 'message' => $e->getMessage(),
             ], 401);
         }
+    }
+
+    // forgot password send email
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        // Generate token random
+        $token = Str::random(64);
+
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            ['token' => $token, 'created_at' => Carbon::now()]
+        );
+
+        // Kirim email dengan link ke frontend
+        $frontendUrl =  env('FRONTEND_URL', 'https://frontendkamu.com') . "/reset-password?token=$token";
+        Mail::to($user->email)->send(new ResetPasswordMail($frontendUrl));
+
+        return response()->json(['message' => 'Reset password link sent to your email.'], 200);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Invalid or expired token'], 400);
+        }
+
+        User::where('email', $record->email)->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        DB::table('password_reset_tokens')->where('email', $record->email)->delete();
+
+        return response()->json(['message' => 'Password has been reset successfully!'], 200);
     }
 }

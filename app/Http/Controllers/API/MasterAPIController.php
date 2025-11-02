@@ -24,6 +24,7 @@ use App\Models\Variant;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
 use App\Models\VoucherUsage;
+use App\Models\VoucherUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,7 @@ class MasterAPIController extends Controller
     {
         $user = Auth::user();
         $data = User::with('profile')->where('id', $user->id)->first();
+
         $json = [
             'id' => $data->id,
             'name' => $data->name,
@@ -44,16 +46,17 @@ class MasterAPIController extends Controller
             'email_verified_at' => $data->email_verified_at,
             'role' => $data->role,
             'google_id' => $data->google_id,
-            'whatsapp' => $data->profile->whatsapp,
+            'whatsapp' => $data->profile?->whatsapp,
             'address' => $data->address,
-            'province' => $data->profile->province,
-            'city' => $data->profile->city,
-            'district' => $data->profile->district,
-            'postal_code' => $data->profile->postal_code,
+            'province' => $data->profile?->province,
+            'city' => $data->profile?->city,
+            'district' => $data->profile?->district,
+            'postal_code' => $data->profile?->postal_code,
         ];
 
         return response()->json($json, 200);
     }
+
 
     /*
      * Create Resellers Account
@@ -348,5 +351,25 @@ class MasterAPIController extends Controller
         }
 
         return response()->json($about, 200);
+    }
+
+    // get voucher users
+    public function myVouchers()
+    {
+        $user = Auth::user();
+
+        // pastikan user login
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not authenticated.'
+            ], 401);
+        }
+
+        // ambil semua voucher yang dimiliki user + relasi voucher dan user
+        $vouchers = VoucherUser::with(['voucher', 'user'])
+            ->where('user_id', $user->id)
+            ->get();
+
+        return response()->json($vouchers, 200);
     }
 }
