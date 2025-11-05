@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('howitworks_steps', function (Blueprint $table) {
+        Schema::create('brands', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('howitworks_id')->constrained('howitworks_brands')->onDelete('cascade');
-            $table->string('text');
+            $table->string('brand');
+            $table->string('slug')->unique();
+            $table->text('description');
+            $table->string('image');
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('howitworks_steps');
+        Schema::dropIfExists('brands');
     }
 };

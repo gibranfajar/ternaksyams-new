@@ -42,20 +42,39 @@
                                     <input id="benefits" type="hidden" name="benefits" value="{{ $product->benefits }}">
                                     <trix-editor input="benefits"></trix-editor>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="giziInput" class="form-label">Nutrition</label>
-                                    <input type="file" class="form-control" id="giziInput" name="gizi_path">
-                                </div>
+                                <div class="row mb-4">
+                                    <!-- Nutrition Upload -->
+                                    <div class="col-md-6">
+                                        <label for="giziInput" class="form-label fw-semibold">Nutrition</label>
+                                        <input type="file" class="form-control" id="giziInput" name="gizi_path"
+                                            accept="image/*">
 
-                                <div id="preview" class="mt-2">
-                                    @if ($product->gizi_path)
-                                        <img id="previewImg" src="{{ asset('storage/' . $product->gizi_path) }}"
-                                            alt="{{ $product->name }}"
-                                            style="max-width: 200px; border:1px solid #ccc; padding:5px; border-radius:8px;" />
-                                    @else
-                                        <img id="previewImg"
-                                            style="max-width: 200px; display:none; border:1px solid #ccc; padding:5px; border-radius:8px;" />
-                                    @endif
+                                        <div id="preview" class="mt-3 text-center">
+                                            @if (!empty($product->gizi_path))
+                                                <img id="previewImg" src="{{ asset('storage/' . $product->gizi_path) }}"
+                                                    alt="{{ $product->name }}" class="img-fluid rounded shadow-sm border"
+                                                    style="max-width: 200px; transition: 0.3s;">
+                                            @else
+                                                <img id="previewImg" class="img-fluid rounded shadow-sm border"
+                                                    style="max-width: 200px; display:none; transition: 0.3s;">
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <!-- Brand Select -->
+                                    <div class="col-md-6">
+                                        <label for="brand" class="form-label fw-semibold">Brand</label>
+                                        <select name="brand" id="brand" class="form-select" required>
+                                            <option value="" disabled {{ !$product->brand_id ? 'selected' : '' }}>--
+                                                Pilih Brand --</option>
+                                            @foreach ($brands as $brand)
+                                                <option value="{{ $brand->id }}"
+                                                    {{ $product->brand_id == $brand->id ? 'selected' : '' }}>
+                                                    {{ $brand->brand }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
 
                             </div>

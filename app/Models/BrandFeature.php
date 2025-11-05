@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class HowitworksHeadline extends Model
+class BrandFeature extends Model
 {
-    protected $table = 'howitworks_headlines';
+    protected $table = 'brand_features';
     protected $guarded = [];
 }

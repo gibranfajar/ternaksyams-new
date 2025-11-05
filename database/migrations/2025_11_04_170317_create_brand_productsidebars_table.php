@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('brands', function (Blueprint $table) {
+        Schema::create('brand_productsidebars', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
+            $table->foreignId('brand_id')->constrained()->onDelete('cascade');
+            $table->string('headline');
             $table->text('description');
-            $table->string('image');
+            $table->string('ctatext');
+            $table->string('ctalink');
+            $table->string('cardcolor');
+            $table->string('textcolor');
             $table->timestamps();
         });
     }
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('brands');
+        Schema::dropIfExists('brand_productsidebars');
     }
 };

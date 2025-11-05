@@ -8,7 +8,7 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="page-header-title">
-                                <h3>Create Brand (Full Schema)</h3>
+                                <h3>Create Brand</h3>
                             </div>
                         </div>
                     </div>
@@ -17,239 +17,393 @@
 
             <div class="row">
                 <div class="col-sm-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <form action="{{ route('brands.store') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
+                    <form action="{{ route('brands.store') }}" method="POST" enctype="multipart/form-data" id="brandForm">
+                        @csrf
+                        <div class="card">
+                            <div class="card-body">
 
-                                {{-- ================= BRAND ================= --}}
-                                <h4>Brand Info</h4>
+                                <h4 class="mb-4">Brand Information</h4>
+
+                                {{-- BRAND NAME & IMAGE --}}
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="form-label">Brand Name</label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="image" class="form-label">Brand Image</label>
+                                        <input type="file" class="form-control" id="image" name="image"
+                                            accept="image/*" required>
+                                        <div class="mt-2">
+                                            <img id="preview-image" src="#" alt="Preview"
+                                                class="img-thumbnail d-none" style="max-width: 150px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- DESCRIPTION --}}
                                 <div class="mb-3">
-                                    <input type="text" name="brand_name" placeholder="Nama Brand"
-                                        class="form-control mb-2" required>
-                                    <textarea name="brand_description" placeholder="Deskripsi" class="form-control mb-2"></textarea>
-                                    <label>Logo / Gambar Brand:</label>
-                                    <input type="file" name="brand_image" accept="image/*" class="form-control mb-2"
-                                        onchange="previewImage(event, 'brandPreview')">
-                                    <img id="brandPreview" class="img-thumbnail mt-2"
-                                        style="max-width:200px; display:none;">
+                                    <label for="description" class="form-label">Description</label>
+                                    <input id="description" type="hidden" name="description">
+                                    <trix-editor input="description"></trix-editor>
                                 </div>
 
-                                <hr>
-
-                                {{-- ================= SIZES ================= --}}
-                                <h4>Sizes</h4>
-                                <div id="sizes-wrapper"></div>
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="addSize()">+ Add
-                                    Size</button>
-
-                                <hr>
-
-                                {{-- ================= VARIANTS ================= --}}
-                                <h4>Variants</h4>
-                                <div id="variants-wrapper"></div>
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="addVariant()">+ Add
-                                    Variant</button>
-
-                                <hr>
-
-                                {{-- ================= HERO SECTION ================= --}}
-                                <h4>Hero Section</h4>
-                                <input type="text" name="hero[title]" placeholder="Title" class="form-control mb-2">
-                                <textarea name="hero[subtitle]" placeholder="Subtitle" class="form-control mb-2"></textarea>
-
-                                <h5>CTA Buttons</h5>
-                                <input type="text" name="hero[cta_shop]" placeholder="CTA Shop Text"
-                                    class="form-control mb-2">
-                                <input type="text" name="hero[cta_shop_url]" placeholder="CTA Shop URL"
-                                    class="form-control mb-2">
-                                <input type="text" name="hero[cta_subscribe]" placeholder="CTA Subscribe Text"
-                                    class="form-control mb-2">
-                                <input type="text" name="hero[cta_subscribe_url]" placeholder="CTA Subscribe URL"
-                                    class="form-control mb-2">
-
-                                <label>Hero Image:</label>
-                                <input type="file" name="hero[image]" accept="image/*" class="form-control mb-2"
-                                    onchange="previewImage(event, 'heroPreview')">
-                                <img id="heroPreview" class="img-thumbnail mt-2" style="max-width:200px; display:none;">
-
-                                <h5>Testimonial</h5>
-                                <input type="text" name="testimonialquote" placeholder="Testimonial Quote"
-                                    class="form-control mb-2">
-
-                                <h5>Reviews</h5>
-                                <input type="text" name="review[count]" placeholder="Review Count"
-                                    class="form-control mb-2">
-                                <input type="text" name="review[text]" placeholder="Review Text"
-                                    class="form-control mb-2">
-                                <input type="text" name="review[link_text]" placeholder="Review Link Text"
-                                    class="form-control mb-2">
-                                <input type="text" name="review[link_url]" placeholder="Review Link URL"
-                                    class="form-control mb-2">
-                                <input type="text" name="review[bg_color]" placeholder="Review Background Color"
-                                    class="form-control mb-2">
-                                <input type="text" name="review[text_color]" placeholder="Review Text Color"
-                                    class="form-control mb-2">
-
-                                <hr>
-
-                                {{-- ================= FEATURES ================= --}}
-                                <h4>Features</h4>
-                                <input type="text" name="colormarquefeature[bg_color]"
-                                    placeholder="Color Marque Feature Background Color" class="form-control mb-2">
-                                <input type="text" name="colormarquefeature[text_color]"
-                                    placeholder="Color Marque Feature Text Color" class="form-control mb-2">
-                                <div id="features-wrapper"></div>
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="addFeature()">+ Add
-                                    Feature</button>
-
-                                <hr>
-
-                                <h5>Product Section</h5>
-                                <input type="text" name="productsection[title]" placeholder="Title"
-                                    class="form-control mb-2">
-                                <input type="text" name="productsection[title_color]" placeholder="Title Color"
-                                    class="form-control mb-2">
-                                <input type="text" name="productsidebar[headline]" placeholder="Headline"
-                                    class="form-control mb-2">
-                                <textarea name="productsidebar[description]" placeholder="Deskripsi" class="form-control mb-2"></textarea>
-                                <input type="text" name="productsidebar[cta_text]" placeholder="Cta Text"
-                                    class="form-control mb-2">
-                                <input type="text" name="productsidebar[cta_url]" placeholder="Cta URL"
-                                    class="form-control mb-2">
-
-                                {{-- ================= ABOUT SECTION ================= --}}
-                                <h4>About Section</h4>
-                                <input type="text" name="about[tagline]" placeholder="Tagline"
-                                    class="form-control mb-2">
-                                <input type="text" name="about[title]" placeholder="Judul" class="form-control mb-2">
-                                <textarea name="about[description]" placeholder="Deskripsi" class="form-control mb-2"></textarea>
-
-                                <label>About Image:</label>
-                                <input type="file" name="about[image]" accept="image/*" class="form-control mb-2"
-                                    onchange="previewImage(event, 'aboutPreview')">
-                                <img id="aboutPreview" class="img-thumbnail mt-2" style="max-width:200px; display:none;">
-
-                                <hr>
-
-                                {{-- ================= HOW IT WORKS ================= --}}
-                                <h4>How It Works</h4>
-                                <input type="text" name="how[tagline]" placeholder="Tagline"
-                                    class="form-control mb-2">
-                                <label>Image:</label>
-                                <input type="file" name="how[image]" accept="image/*" class="form-control mb-2"
-                                    onchange="previewImage(event, 'howPreview')">
-                                <img id="howPreview" class="img-thumbnail mt-2" style="max-width:200px; display:none;">
-
-                                <h5>Headlines</h5>
-                                <div id="headlines-wrapper"></div>
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="addHeadline()">+ Add
-                                    Headline</button>
-
-                                <h5 class="mt-3">Steps</h5>
-                                <div id="steps-wrapper"></div>
-                                <button type="button" class="btn btn-sm btn-success mt-2" onclick="addStep()">+ Add
-                                    Step</button>
-
-                                <div class="mt-3">
-                                    <input type="text" name="how[cta_text]" placeholder="CTA Text"
-                                        class="form-control mb-2">
-                                    <input type="text" name="how[cta_url]" placeholder="CTA URL"
-                                        class="form-control mb-2">
+                                {{-- SIZES --}}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <label class="form-label">Sizes</label>
+                                        <button type="button" class="btn btn-sm btn-success btn-add-size">+ Add
+                                            Size</button>
+                                    </div>
+                                    <div id="sizes-wrapper">
+                                        <div class="input-group mb-2 size-item">
+                                            <input type="text" name="sizes[]" class="form-control"
+                                                placeholder="Enter size" required>
+                                            <button type="button" class="btn btn-danger btn-remove-size">Remove</button>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <hr>
-                                <button type="submit" class="btn btn-primary mt-3">Simpan Brand</button>
-                            </form>
+                                {{-- VARIANTS --}}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <label class="form-label">Variants</label>
+                                        <button type="button" class="btn btn-sm btn-success btn-add-variant">+ Add
+                                            Variant</button>
+                                    </div>
+                                    <div id="variants-wrapper">
+                                        <div class="variant-item mb-2">
+                                            <div class="input-group mb-1">
+                                                <input type="text" name="variants[name][]" class="form-control"
+                                                    placeholder="Variant name" required>
+                                            </div>
+                                            <input type="file" name="variants[images][]"
+                                                class="form-control variant-image" accept="image/*" required>
+                                            <div class="mt-2">
+                                                <img src="#" alt="Preview"
+                                                    class="img-thumbnail d-none variant-preview" style="max-width: 150px;">
+                                            </div>
+                                            <button type="button"
+                                                class="btn btn-sm btn-danger mt-2 btn-remove-variant">Remove
+                                                Variant</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h4>Brand Details</h4>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_title" class="form-label">Title</label>
+                                        <input type="text" class="form-control" id="detail_title" name="detail_title">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="detail_subtitle" class="form-label">Sub Title</label>
+                                        <input type="text" class="form-control" id="detail_subtitle"
+                                            name="detail_subtitle">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_banner" class="form-label">Banner</label>
+                                    <input type="file" class="form-control" id="detail_banner" name="detail_banner"
+                                        accept="image/*" required>
+                                    <div class="mt-2">
+                                        <img id="preview-image-detail_banner" src="#" alt="Preview"
+                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h5 class="mb-3">Reviews & Testimonials</h5>
+
+                                <div class="mb-3">
+                                    <label for="detail_quotes" class="form-label">Quotes</label>
+                                    <input id="detail_quotes" type="text" class="form-control" name="detail_quotes">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_text_review" class="form-label">Text Review</label>
+                                    <input id="detail_text_review" type="text" class="form-control"
+                                        name="detail_text_review">
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_textcta_review" class="form-label">Text CTA</label>
+                                        <input type="text" class="form-control" id="detail_textcta_review"
+                                            name="detail_textcta_review">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_linkcta_review" class="form-label">Link CTA</label>
+                                        <input type="text" class="form-control" id="detail_linkcta_review"
+                                            name="detail_linkcta_review">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_cardcolor_review" class="form-label">Card Color</label>
+                                        <input type="text" class="form-control" id="detail_cardcolor_review"
+                                            name="detail_cardcolor_review">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_textcolor_review" class="form-label">Text Color</label>
+                                        <input type="text" class="form-control" id="detail_textcolor_review"
+                                            name="detail_textcolor_review">
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h5 class="mb-3">Marque</h5>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_marque_bgcolor" class="form-label">Marque Background
+                                            Color</label>
+                                        <input type="text" class="form-control" id="detail_marque_bgcolor"
+                                            name="detail_marque_bgcolor">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_marque_textcolor" class="form-label">Marque Text Color</label>
+                                        <input type="text" class="form-control" id="detail_marque_textcolor"
+                                            name="detail_marque_textcolor">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_marque" class="form-label">Marque Text</label>
+                                    <input type="hidden" class="form-control" id="detail_marque" name="detail_marque">
+                                    <trix-editor input="detail_marque"></trix-editor>
+                                </div>
+
+                                <hr>
+
+                                <h5 class="mb-3">Products Information</h5>
+
+                                <div class="mb-3">
+                                    <label for="detail_headline_product" class="form-label">Headline</label>
+                                    <input type="text" class="form-control" id="detail_headline_product"
+                                        name="detail_headline_product">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_description_product" class="form-label">Description</label>
+                                    <input id="detail_description_product" type="hidden"
+                                        name="detail_description_product">
+                                    <trix-editor input="detail_description_product"></trix-editor>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_ctatext_product" class="form-label">CTA Text</label>
+                                        <input type="text" class="form-control" id="detail_ctatext_product"
+                                            name="detail_ctatext_product">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_ctalink_product" class="form-label">CTA Link</label>
+                                        <input type="text" class="form-control" id="detail_ctalink_product"
+                                            name="detail_ctalink_product">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_cardcolor_product" class="form-label">Card Color</label>
+                                        <input type="text" class="form-control" id="detail_cardcolor_product"
+                                            name="detail_cardcolor_product">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_textcolor_product" class="form-label">Text Color</label>
+                                        <input type="text" class="form-control" id="detail_textcolor_product"
+                                            name="detail_textcolor_product">
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h5 class="mb-3">About</h5>
+
+                                <div class="mb-3">
+                                    <label for="detail_title_about" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="detail_title_about"
+                                        name="detail_title_about">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_description-about" class="form-label">Description</label>
+                                    <input type="hidden" class="form-control" id="detail_description-about"
+                                        name="detail_description-about">
+                                    <trix-editor input="detail_description-about"></trix-editor>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_about_image" class="form-label">Image</label>
+                                    <input type="file" class="form-control" id="detail_about_image"
+                                        name="detail_about_image" accept="image/*" required>
+                                    <div class="mt-2">
+                                        <img id="preview-image-about" src="#" alt="Preview"
+                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="detail_about_ctatext" class="form-label">CTA Text</label>
+                                        <input type="text" class="form-control" id="detail_about_ctatext"
+                                            name="detail_about_ctatext">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="detail_about_ctalink" class="form-label">CTA Link</label>
+                                        <input type="text" class="form-control" id="detail_about_ctalink"
+                                            name="detail_about_ctalink">
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <h5 class="mb-3">How It Works</h5>
+
+                                <div class="mb-3">
+                                    <label for="detail_tagline_howitwork" class="form-label">Tagline</label>
+                                    <input type="text" class="form-control" id="detail_tagline_howitwork"
+                                        name="detail_tagline_howitwork">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_howitwork_image" class="form-label">Image</label>
+                                    <input type="file" class="form-control" id="detail_howitwork_image"
+                                        name="detail_howitwork_image" accept="image/*" required>
+                                    <div class="mt-2">
+                                        <img id="preview-image-detail_howitwork_image" src="#" alt="Preview"
+                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_headline_howitwork" class="form-label">Headline</label>
+                                    <input type="hidden" class="form-control" id="detail_headline_howitwork"
+                                        name="detail_headline_howitwork">
+                                    <trix-editor input="detail_headline_howitwork"></trix-editor>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="detail_steps_howitwork" class="form-label">Steps</label>
+                                    <input type="hidden" class="form-control" id="detail_steps_howitwork"
+                                        name="detail_steps_howitwork">
+                                    <trix-editor input="detail_steps_howitwork"></trix-editor>
+                                </div>
+
+                                <div class="mb-3 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- ============== JAVASCRIPT ============== --}}
-    <script>
-        let variantIndex = 0;
-
-        function addFeature() {
-            const wrapper = document.getElementById('features-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2');
-            div.innerHTML = `
-                <input type="text" name="features[]" placeholder="Feature" class="form-control">
-                <button type="button" class="btn btn-danger" onclick="this.parentNode.remove()">X</button>
-            `;
-            wrapper.appendChild(div);
-        }
-
-        function addSize() {
-            const wrapper = document.getElementById('sizes-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2');
-            div.innerHTML = `
-                <input type="text" name="brand[sizes]" placeholder="Contoh: 250 Gram" class="form-control">
-                <button type="button" class="btn btn-danger" onclick="this.parentNode.remove()">X</button>
-            `;
-            wrapper.appendChild(div);
-        }
-
-        function addVariant() {
-            const wrapper = document.getElementById('variants-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('border', 'p-3', 'mb-3');
-            div.innerHTML = `
-                <input type="text" name="brand[variants][${variantIndex}][name]" placeholder="Nama Varian" class="form-control mb-2">
-                <input type="file" name="brand[variants][${variantIndex}][image]" accept="image/*" class="form-control mb-2" onchange="previewImage(event, 'variantPreview${variantIndex}')">
-                <img id="variantPreview${variantIndex}" class="img-thumbnail mt-2" style="max-width:200px; display:none;">
-                <button type="button" class="btn btn-danger mt-2" onclick="this.parentNode.remove()">Hapus Varian</button>
-            `;
-            variantIndex++;
-            wrapper.appendChild(div);
-        }
-
-        function addHeadline() {
-            const wrapper = document.getElementById('headlines-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2');
-            div.innerHTML = `
-                <input type="text" name="how[headlines][]" placeholder="Headline" class="form-control">
-                <button type="button" class="btn btn-danger" onclick="this.parentNode.remove()">X</button>
-            `;
-            wrapper.appendChild(div);
-        }
-
-        function addStep() {
-            const wrapper = document.getElementById('steps-wrapper');
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2');
-            div.innerHTML = `
-                <input type="text" name="how[steps][]" placeholder="Step" class="form-control">
-                <button type="button" class="btn btn-danger" onclick="this.parentNode.remove()">X</button>
-            `;
-            wrapper.appendChild(div);
-        }
-
-        function previewImage(event, previewId) {
-            const img = document.getElementById(previewId);
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    img.src = reader.result;
-                    img.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Tambahkan 1 field awal per grup biar ga kosong
-        window.onload = function() {
-            addFeature();
-            addSize();
-            addVariant();
-            addHeadline();
-            addStep();
-        };
-    </script>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            // --- BRAND IMAGE PREVIEW ---
+            $('#image').on('change', function(event) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-image').attr('src', e.target.result).removeClass('d-none');
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            });
+
+            // --- BRAND BANNER PREVIEW ---
+            $('#detail_banner').on('change', function(event) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-image-detail_banner').attr('src', e.target.result).removeClass(
+                        'd-none');
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            });
+
+            // --- ADD SIZE ---
+            $('.btn-add-size').on('click', function() {
+                const newSize = `
+                    <div class="input-group mb-2 size-item">
+                        <input type="text" name="sizes[]" class="form-control" placeholder="Enter size" required>
+                        <button type="button" class="btn btn-danger btn-remove-size">Remove</button>
+                    </div>`;
+                $('#sizes-wrapper').append(newSize);
+            });
+
+            // --- REMOVE SIZE ---
+            $(document).on('click', '.btn-remove-size', function() {
+                $(this).closest('.size-item').remove();
+            });
+
+            // --- ADD VARIANT ---
+            $('.btn-add-variant').on('click', function() {
+                const newVariant = `
+                    <div class="variant-item mb-2">
+                        <div class="input-group mb-1">
+                            <input type="text" name="variants[name][]" class="form-control" placeholder="Variant name" required>
+                        </div>
+                        <input type="file" name="variants[images][]" class="form-control variant-image" accept="image/*" required>
+                        <div class="mt-2">
+                            <img src="#" alt="Preview" class="img-thumbnail d-none variant-preview" style="max-width: 150px;">
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger mt-2 btn-remove-variant">Remove Variant</button>
+                    </div>`;
+                $('#variants-wrapper').append(newVariant);
+            });
+
+
+            // --- REMOVE VARIANT ---
+            $(document).on('click', '.btn-remove-variant', function() {
+                $(this).closest('.variant-item').remove();
+            });
+
+            // --- VARIANT IMAGE PREVIEW ---
+            $(document).on('change', '.variant-image', function(event) {
+                const preview = $(this).siblings('.mt-2').find('.variant-preview');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.attr('src', e.target.result).removeClass('d-none');
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            });
+
+            // --- ABOUT IMAGE PREVIEW ---
+            $('#detail_about_image').on('change', function(event) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-image-about').attr('src', e.target.result).removeClass('d-none');
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            });
+
+            // --- HOW IT WORK IMAGE PREVIEW ---
+            $('#detail_howitwork_image').on('change', function(event) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview-image-detail_howitwork_image').attr('src', e.target.result).removeClass(
+                        'd-none');
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            });
+        });
+    </script>
+@endpush

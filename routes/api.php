@@ -37,6 +37,11 @@ Route::prefix('/cart')->group(function () {
 Route::post('/apply-voucher', [MasterAPIController::class, 'applyVoucher']);
 Route::get('/vouchers', [MasterAPIController::class, 'myVouchers'])->middleware('auth:sanctum');
 
+// Brands
+Route::get('/brands', [MasterAPIController::class, 'brands']);
+Route::get('/brand/{slug}', [MasterAPIController::class, 'detailBrand']);
+Route::get('/variant-all-brand', [MasterAPIController::class, 'variantAllBrand']);
+
 // Category
 Route::get('/categories', [MasterAPIController::class, 'categories']);
 // Products
@@ -70,6 +75,9 @@ Route::get('cities/{id}', [RajaongkirController::class, 'cities']);
 Route::get('districts/{id}', [RajaongkirController::class, 'districts']);
 Route::get('subdistricts/{id}', [RajaongkirController::class, 'subdistricts']);
 Route::get('cost/{destination}/{weight}/{courier}', [RajaongkirController::class, 'calculateCost']);
+
+// Faqs
+Route::get('/faqs', [MasterAPIController::class, 'getFaqs']);
 
 // Transaction
 Route::post('/transaction', [TransactionController::class, 'createTransaction']);

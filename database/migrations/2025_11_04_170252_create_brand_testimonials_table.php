@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('products', function (Blueprint $table) {
+        Schema::create('brand_testimonials', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->string('gizi_path');
-            $table->text('description');
-            $table->text('benefits');
             $table->foreignId('brand_id')->constrained()->onDelete('cascade');
+            $table->text('quotes');
+            $table->string('textreview');
+            $table->string('textcta');
+            $table->string('linkcta');
+            $table->string('cardcolor');
+            $table->string('textcolor');
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('products');
+        Schema::dropIfExists('brand_testimonials');
     }
 };

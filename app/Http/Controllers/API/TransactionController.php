@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TransactionResource;
+use App\Mail\OrderInvoiceMail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Payment;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Midtrans\Notification;
 
 class TransactionController extends Controller
@@ -29,21 +31,22 @@ class TransactionController extends Controller
     public function createTransaction(Request $request)
     {
         DB::beginTransaction();
-        try {
 
-            //  get cart where cart id
-            $cart = Cart::with('items')->where('id', $request->cart_id)->where('status', 'active')->first();
+        try {
+            // === 1️⃣ Ambil cart aktif ===
+            $cart = Cart::with('items.variantsize.variant.product', 'items.variantsize.size')
+                ->where('id', $request->cart_id)
+                ->where('status', 'active')
+                ->first();
 
             if (!$cart) {
-                return response()->json([
-                    'message' => 'cart not found'
-                ], 404);
+                return response()->json(['message' => 'Cart not found'], 404);
             }
 
-            // generate invoice
+            // === 2️⃣ Generate invoice ===
             $invoice = 'INV-TS/' . now()->format('ymd') . '/' . rand(1000, 9999);
 
-            // create table shipping options
+            // === 3️⃣ Simpan shipping option ===
             $shippingOption = ShippingOption::create([
                 'expedition' => $request->courier,
                 'service'    => $request->service,
@@ -51,20 +54,20 @@ class TransactionController extends Controller
                 'etd'        => $request->etd
             ]);
 
-            // create shipping information
+            // === 4️⃣ Simpan shipping information ===
             $shippingInfo = ShippingInformation::create([
-                'name'              => $request->name,
-                'phone'             => $request->phone,
-                'email'             => $request->email,
-                'address'           => $request->address,
-                'province'          => $request->province,
-                'city'              => $request->city,
-                'district'          => $request->district,
-                'postal_code'       => $request->postal_code,
-                'destination_id'    => $request->destination_id
+                'name'        => $request->name,
+                'phone'       => $request->phone,
+                'email'       => $request->email,
+                'address'     => $request->address,
+                'province'    => $request->province,
+                'city'        => $request->city,
+                'district'    => $request->district,
+                'postal_code' => $request->postal_code,
+                'destination_id' => $request->destination_id
             ]);
 
-            // create table orders
+            // === 5️⃣ Buat order ===
             $order = Order::create([
                 'cart_id' => $cart->id,
                 'user_id' => $cart->user_id,
@@ -74,7 +77,7 @@ class TransactionController extends Controller
                 'note'    => $request->note
             ]);
 
-            // crate table order_items
+            // === 6️⃣ Simpan item order ===
             foreach ($cart->items as $item) {
                 $order->items()->create([
                     'variantsize_id' => $item->variantsize->id,
@@ -91,13 +94,13 @@ class TransactionController extends Controller
                 ]);
             }
 
-            // === Midtrans Integration ===
-            Config::$serverKey = config('services.midtrans.server_key');
+            // === 7️⃣ Midtrans config ===
+            Config::$serverKey    = config('services.midtrans.server_key');
             Config::$isProduction = config('services.midtrans.is_production');
-            Config::$isSanitized = true;
-            Config::$is3ds = true;
+            Config::$isSanitized  = true;
+            Config::$is3ds        = true;
 
-            // kumpulin item details
+            // === 8️⃣ Kumpulin item detail untuk Midtrans ===
             $itemDetails = [];
             foreach ($order->items as $orderItem) {
                 $itemDetails[] = [
@@ -108,17 +111,60 @@ class TransactionController extends Controller
                 ];
             }
 
-            // tambahin ongkir juga
+            // Tambahkan ongkir
             $itemDetails[] = [
                 'id'       => 'shipping',
                 'price'    => (int) $shippingOption->cost,
                 'quantity' => 1,
-                'name'     => 'Shipping Cost - ' . $shippingOption->expedition . ' ' . $shippingOption->service,
+                'name'     => 'Shipping - ' . $shippingOption->expedition . ' ' . $shippingOption->service,
             ];
 
+            // === 9️⃣ Voucher (jika ada) ===
+            $discountAmount = 0;
+
+            if ($request->filled('voucher_code')) {
+                $voucher = Voucher::where('code', $request->voucher_code)->first();
+
+                if (!$voucher) {
+                    return response()->json(['message' => 'Voucher not found'], 404);
+                }
+
+                // hitung diskon
+                if ($voucher->type === 'percentage') {
+                    $discountAmount = ($voucher->value / 100) * $order->total;
+                } else {
+                    $discountAmount = $voucher->value;
+                }
+
+                $discountAmount = min($discountAmount, $order->total);
+
+                // kurangi total order
+                $order->update([
+                    'total' => $order->total - $discountAmount
+                ]);
+
+                // Tambahkan ke Midtrans
+                $itemDetails[] = [
+                    'id'       => 'voucher',
+                    'price'    => -$discountAmount,
+                    'quantity' => 1,
+                    'name'     => 'Voucher Discount (' . $voucher->code . ')',
+                ];
+
+                // Simpan penggunaan voucher
+                VoucherUsage::create([
+                    'order_id'   => $order->id,
+                    'voucher_id' => $voucher->id,
+                    'user_id'    => $cart->user_id,
+                    'session'    => $cart->session,
+                    'used_at'    => now(),
+                ]);
+            }
+
+            // === 🔟 Buat parameter Midtrans ===
             $params = [
                 'transaction_details' => [
-                    'order_id' => $order->invoice,
+                    'order_id'     => $order->invoice,
                     'gross_amount' => (int) $order->total,
                 ],
                 'item_details' => $itemDetails,
@@ -136,54 +182,39 @@ class TransactionController extends Controller
                 ]
             ];
 
+            // === 11️⃣ Dapetin Snap Token ===
             $snapToken = Snap::getSnapToken($params);
 
-            // create table payment
+            // === 12️⃣ Simpan payment ===
             Payment::create([
                 'order_id' => $order->id,
-                'method' => 'midtrans',
-                'token' => $snapToken
+                'method'   => 'midtrans',
+                'token'    => $snapToken
             ]);
 
-            // create table voucher usage jika ada voucher
-            if ($request->filled('voucher_code')) {
-                $voucher = Voucher::where('code', $request->voucher_code)->first();
-
-                if (!$voucher) {
-                    return response()->json([
-                        'message' => 'Voucher not found'
-                    ], 404);
-                }
-
-                VoucherUsage::create([
-                    'order_id'   => $order->id,
-                    'voucher_id' => $voucher->id,
-                    'user_id'    => $cart->user_id,
-                    'session'    => $cart->session,
-                    'used_at'    => now(),
-                ]);
-            }
-
-            // create shipping
+            // === 13️⃣ Simpan shipping ===
             Shipping::create([
-                'order_id'                  => $order->id,
-                'shipping_options_id'       => $shippingOption->id,
-                'shipping_information_id'   => $shippingInfo->id,
-                'weight'                    => $request->total_weight
+                'order_id'                => $order->id,
+                'shipping_options_id'     => $shippingOption->id,
+                'shipping_information_id' => $shippingInfo->id,
+                'weight'                  => $request->total_weight
             ]);
 
-            // update cart
-            $cart->update([
-                'status' => 'ordered'
-            ]);
+            // === 14️⃣ Update cart & stok ===
+            $cart->update(['status' => 'ordered']);
 
-            // update qty stock
             foreach ($order->items as $orderItem) {
-                VariantSize::where('id', $orderItem->variantsize_id)->decrement('stock', $orderItem->qty);
+                VariantSize::where('id', $orderItem->variantsize_id)
+                    ->decrement('stock', $orderItem->qty);
             }
 
             DB::commit();
 
+            // === 15️⃣ Kirim email invoice ===
+            $paymentUrl = 'https://app.midtrans.com/snap/v2/vtweb/' . $snapToken;
+            Mail::to($request->email)->send(new OrderInvoiceMail($order, $paymentUrl));
+
+            // === ✅ Return response ===
             return response()->json([
                 'message'    => 'success',
                 'invoice'    => $invoice,
@@ -192,11 +223,10 @@ class TransactionController extends Controller
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
-                'message' => $th
-            ]);
+                'message' => 'Error: ' . $th->getMessage(),
+            ], 500);
         }
     }
-
 
     /**
      * List Transaction By User.

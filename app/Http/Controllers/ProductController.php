@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Flavour;
 use App\Models\Product;
@@ -31,7 +32,8 @@ class ProductController extends Controller
         $flavours = Flavour::all();
         $categories = Category::all();
         $sizes = Size::all();
-        return view('products.create', compact('flavours', 'categories', 'sizes'));
+        $brands = Brand::all();
+        return view('products.create', compact('flavours', 'categories', 'sizes', 'brands'));
     }
 
     /**
@@ -55,6 +57,7 @@ class ProductController extends Controller
                     'description' => $request->description,
                     'benefits'    => $request->benefits,
                     'gizi_path'   => $giziPath,
+                    'brand_id'    => $request->brand
                 ]);
 
                 // 2. Loop variant
@@ -140,6 +143,7 @@ class ProductController extends Controller
                     'slug'        => Str::slug($request->name),
                     'description' => $request->description,
                     'benefits'    => $request->benefits,
+                    'brand_id'    => $request->brand
                 ]);
 
                 $variantIds = [];

@@ -14,7 +14,10 @@ use App\Models\About;
 use App\Models\Affiliator;
 use App\Models\Article;
 use App\Models\Benefit;
+use App\Models\Brand;
+use App\Models\BrandVariant;
 use App\Models\Category;
+use App\Models\Faq;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Reseller;
@@ -110,6 +113,48 @@ class MasterAPIController extends Controller
             return response()->json(['message' => 'Failed to create affiliate'], 500);
         }
     }
+
+
+    /**
+     * Get All Brands
+     */
+    public function brands()
+    {
+        $brands = Brand::with('sizes', 'variants')->get();
+        return response()->json(['data' => $brands], 200);
+    }
+
+    /**
+     * Get Detail Brand
+     */
+    public function detailBrand($slug)
+    {
+        $brand = Brand::with('sizes', 'variants', 'detail', 'testimonial', 'feature', 'productsidebar', 'about', 'howitwork')->where('slug', $slug)->first();
+        return response()->json(['data' => $brand], 200);
+    }
+
+    /**
+     * Get Variant All Brand
+     */
+    public function variantAllBrand()
+    {
+        $variants = \App\Models\BrandVariant::with('brand:id,brand,description')->get();
+
+        $data = $variants->map(function ($variant) {
+            return [
+                'id' => $variant->id,
+                'brand' => $variant->brand->brand ?? null,
+                'variant' => $variant->variant,
+                'image' => asset('storage/' . $variant->image),
+                'description' => $variant->brand->description ?? null,
+                'created_at' => $variant->created_at,
+                'updated_at' => $variant->updated_at,
+            ];
+        });
+
+        return response()->json(['data' => $data], 200);
+    }
+
 
     /*
      * Get All Categories
@@ -371,5 +416,12 @@ class MasterAPIController extends Controller
             ->get();
 
         return response()->json($vouchers, 200);
+    }
+
+    // get faqs
+    public function getFaqs()
+    {
+        $faqs = Faq::with(['category'])->get();
+        return response()->json($faqs, 200);
     }
 }

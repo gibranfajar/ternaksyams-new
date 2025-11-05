@@ -38,21 +38,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{-- @foreach ($categories as $item)
+                                    @foreach ($brands as $item)
                                         <tr>
                                             <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td>{{ $item->name }}</td>
+                                            <td>
+                                                <img src="{{ asset('storage/' . $item->image) }}" alt="thumbnail"
+                                                    width="60">
+                                            </td>
+                                            <td>{{ $item->brand }}</td>
+                                            <td>{!! \Illuminate\Support\Str::limit(strip_tags($item->description), 100, '...') !!}</td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-warning btn-sm me-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editCategoryModal{{ $item->id }}">
-                                                    <i class="ti ti-edit"></i>
-                                                </button>
+                                                <a href="{{ route('brands.edit', $item->id) }}"
+                                                    class="btn btn-warning btn-sm me-1"><i class="ti ti-edit"></i></a>
                                             </td>
                                         </tr>
-                                        <!-- Edit Category Modal -->
-                                        @include('categories.modaledit')
-                                    @endforeach --}}
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
