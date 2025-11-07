@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('brand_variants', function (Blueprint $table) {
+        Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('brand_id')->constrained()->onDelete('cascade');
-            $table->string('variant');
-            $table->string('image');
-            $table->text('description');
+            $table->string('level')->index(); // contoh: info, error, warning
+            $table->string('context')->nullable(); // misal: "order", "payment"
+            $table->text('message');
+            $table->json('extra')->nullable(); // data tambahan (optional)
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('brand_variants');
+        Schema::dropIfExists('logs');
     }
 };

@@ -12,11 +12,13 @@ use App\Http\Controllers\CategoryTutorialController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\FlavourController;
+use App\Http\Controllers\FooterController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SizeController;
+use App\Http\Controllers\SliderController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\VoucherController;
 use App\Mail\TestEmail;
@@ -24,7 +26,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+Route::resource('sliders', SliderController::class);
 Route::resource('abouts', AboutController::class);
+Route::resource('footers', FooterController::class);
 Route::resource('categories', CategoryController::class);
 Route::resource('flavours', FlavourController::class);
 Route::resource('sizes', SizeController::class);
@@ -43,6 +47,7 @@ Route::resource('promotions', PromotionController::class);
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('orders/pickup', [OrderController::class, 'pickup'])->name('orders.pickup');
 Route::post('orders/pickup', [OrderController::class, 'pickupStore'])->name('orders.pickup.store');
+Route::post('orders/request/{order}', [OrderController::class, 'orderRequest'])->name('orders.request-order');
 
 Route::resource('vouchers', VoucherController::class);
 

@@ -114,4 +114,28 @@
             });
         });
     @endif
+
+    // popup handle delete confirmation
+    $(document).ready(function() {
+        $('.btn-delete').on('click', function(e) {
+            e.preventDefault();
+
+            const form = $(this).closest('form');
+
+            Swal.fire({
+                title: 'Yakin ingin menghapus slider ini?',
+                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
 </script>

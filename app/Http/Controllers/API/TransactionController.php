@@ -14,6 +14,7 @@ use App\Models\ShippingOption;
 use App\Models\VariantSize;
 use App\Models\Voucher;
 use App\Models\VoucherUsage;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -210,9 +211,18 @@ class TransactionController extends Controller
 
             DB::commit();
 
-            // === 15️⃣ Kirim email invoice ===
-            $paymentUrl = 'https://app.midtrans.com/snap/v2/vtweb/' . $snapToken;
-            Mail::to($request->email)->send(new OrderInvoiceMail($order, $paymentUrl));
+            // === ✅ Reload order dengan relasi lengkap sebelum kirim email ===
+            $order->load([
+                'items',
+                'shipping.shippingOption',
+                'shipping.shippingInfo'
+            ]);
+
+            // Buat link pembayaran Midtrans
+            $paymentUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/' . $snapToken;
+
+            // Kirim email invoice
+            Mail::to($request->email)->queue(new OrderInvoiceMail($order, $paymentUrl));
 
             // === ✅ Return response ===
             return response()->json([
@@ -245,7 +255,7 @@ class TransactionController extends Controller
     /**
      * Callback Midtrans
      */
-    public function callback(Request $request)
+    public function callbackOld(Request $request)
     {
         // set midtrans config
         Config::$serverKey    = config('services.midtrans.server_key');
@@ -262,13 +272,14 @@ class TransactionController extends Controller
 
         // cari order berdasarkan invoice
         $order = Order::where('invoice', $orderId)->first();
+        $payment = Payment::where('order_id', $order->id)->first();
 
         if (!$order) {
             return response()->json(['message' => 'Order not found'], 404);
         }
 
         // update payment log
-        Payment::where('order_id', $order->id)->update([
+        $payment->update([
             'status'  => $transaction,
         ]);
 
@@ -284,57 +295,22 @@ class TransactionController extends Controller
         } elseif ($transaction == 'settlement') {
             $order->update(['status' => 'processing']);
 
-            $itemDetailsKomship = [];
-            foreach ($order->items as $orderItem) {
-                $itemDetailsKomship[] = [
-                    "product_name" => $orderItem->name,
-                    "product_variant_name" => $orderItem->variant . ' - ' . $orderItem->size,
-                    "product_price" => $orderItem->price,
-                    "product_weight" => intval($orderItem->variantSize->size->label),
-                    "product_width" => 0,
-                    "product_height" => 0,
-                    "product_length" => 0,
-                    "qty" => $orderItem->qty,
-                    "subtotal" => $orderItem->total
-                ];
+            if ($type == 'bank_transfer') {
+                $vaNumbers = $notif->va_numbers ?? [];
+                if (!empty($vaNumbers)) {
+                    return strtoupper($vaNumbers[0]->bank); // contoh: BCA, MANDIRI
+                }
+                return 'BANK_TRANSFER';
+            } elseif ($type == 'cstore') {
+                return ucfirst($notif->store ?? 'CSTORE'); // Alfamart, Indomaret
+            } elseif ($type == 'qris') {
+                return 'QRIS';
+            } else {
+                return strtoupper($type); // fallback
             }
 
-            // Create order to komship komerce
-            $response = Http::withHeaders([
-                'x-api-key' => env('RAJAONGKIR_DELIVERY_API_KEY'),
-                'Accept' => 'application/json',
-            ])->post('https://api-sandbox.collaborator.komerce.id/order/api/v1/orders/store', [
-                "order_date" => now(),
-                "brand_name" => "TernakSyams",
-                "shipper_name" => "TernakSyams",
-                "shipper_phone" => "-",
-                "shipper_destination_id" => 2163,
-                "shipper_address" => "Komplek kramayudha. Blok D5 No. 10. RT 003/018, Mekarsari, Kec. Cimanggis, Kota Depok, Jawa Barat 16452",
-                "shipper_email" => "ternaksyams.id@gmail.com",
-                "receiver_name" => $orderItem->shipping->shippingInfo->name,
-                "receiver_phone" => $orderItem->shipping->shippingInfo->phone,
-                "receiver_destination_id" => $orderItem->shipping->shippingInfo->destination_id,
-                "receiver_address" => $orderItem->shipping->shippingInfo->address,
-                "receiver_email" => $orderItem->shipping->shippingInfo->email,
-                "shipping" => strtoupper($orderItem->shipping->shippingOption->expedition),
-                "shipping_type" => strtoupper($orderItem->shipping->shippingOption->service),
-                "payment_method" => "BANK TRANSFER",
-                "shipping_cost" => $orderItem->shipping->shippingOption->cost,
-                "shipping_cashback" => 0,
-                "service_fee" => 0,
-                "additional_cost" => 0,
-                "grand_total" => $order->total,
-                "cod_value" => 0,
-                "insurance_value" => 0,
-                "order_details" => $itemDetailsKomship
-            ]);
-
-            // Ambil response JSON
-            $result = data_get($response->json(), 'data');
-
-            // Update shipping
-            $order->shipping()->update([
-                'order_number' => $result['order_no']
+            $payment->update([
+                'paid_at' => Carbon::now()
             ]);
         } elseif ($transaction == 'pending') {
             $order->update(['status' => 'pending']);
@@ -347,5 +323,97 @@ class TransactionController extends Controller
         }
 
         return response()->json(['message' => 'Callback processed']);
+    }
+
+    public function callback(Request $request)
+    {
+        // Set Midtrans config
+        Config::$serverKey    = config('services.midtrans.server_key');
+        Config::$isProduction = config('services.midtrans.is_production');
+        Config::$isSanitized  = true;
+        Config::$is3ds        = true;
+
+        $notif = new Notification();
+
+        $transaction = $notif->transaction_status;
+        $type        = $notif->payment_type;
+        $orderId     = $notif->order_id;
+        $fraud       = $notif->fraud_status;
+
+        // Cari order berdasarkan invoice
+        $order = Order::where('invoice', $orderId)->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $payment = Payment::where('order_id', $order->id)->first();
+        if (!$payment) {
+            return response()->json(['message' => 'Payment not found'], 404);
+        }
+
+        // Tentukan payment method
+        $paymentMethod = $this->getPaymentMethod($notif);
+
+        // Update payment log
+        $payment->update([
+            'status'    => $transaction,
+            'method'    => $paymentMethod,
+            'paid_at'   => in_array($transaction, ['settlement', 'capture']) ? now() : null,
+        ]);
+
+        // Handle status order
+        switch ($transaction) {
+            case 'capture':
+                if ($type == 'credit_card') {
+                    $order->update([
+                        'status' => $fraud == 'challenge' ? 'challenge' : 'paid'
+                    ]);
+                }
+                break;
+
+            case 'settlement':
+                $order->update(['status' => 'processing']);
+                break;
+
+            case 'pending':
+                $order->update(['status' => 'pending']);
+                break;
+
+            case 'deny':
+                $order->update(['status' => 'denied']);
+                break;
+
+            case 'expire':
+                $order->update(['status' => 'expired']);
+                break;
+
+            case 'cancel':
+                $order->update(['status' => 'cancelled']);
+                break;
+        }
+
+        return response()->json(['message' => 'Callback processed']);
+    }
+
+    /**
+     * Normalisasi payment method dari response Midtrans
+     */
+    private function getPaymentMethod($notif)
+    {
+        $type = $notif->payment_type;
+
+        if ($type == 'bank_transfer') {
+            $vaNumbers = $notif->va_numbers ?? [];
+            if (!empty($vaNumbers)) {
+                return strtoupper($vaNumbers[0]->bank); // BCA, MANDIRI, dll
+            }
+            return 'BANK_TRANSFER';
+        } elseif ($type == 'cstore') {
+            return ucfirst($notif->store ?? 'CSTORE'); // Alfamart, Indomaret
+        } elseif ($type == 'qris') {
+            return 'QRIS';
+        } else {
+            return strtoupper($type); // fallback
+        }
     }
 }

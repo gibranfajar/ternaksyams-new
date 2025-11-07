@@ -120,7 +120,8 @@ class ProductController extends Controller
         $flavours = Flavour::all();
         $categories = Category::all();
         $sizes = Size::all();
-        return view('products.edit', compact('product', 'flavours', 'categories', 'sizes'));
+        $brands = Brand::all();
+        return view('products.edit', compact('product', 'flavours', 'categories', 'sizes', 'brands'));
     }
 
     /**

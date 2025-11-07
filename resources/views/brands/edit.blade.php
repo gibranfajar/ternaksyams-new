@@ -8,7 +8,7 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="page-header-title">
-                                <h3>Create Brand</h3>
+                                <h3>Edit Brand</h3>
                             </div>
                         </div>
                     </div>
@@ -17,8 +17,10 @@
 
             <div class="row">
                 <div class="col-sm-12">
-                    <form action="{{ route('brands.store') }}" method="POST" enctype="multipart/form-data" id="brandForm">
+                    <form action="{{ route('brands.update', $brand->id) }}" method="POST" enctype="multipart/form-data"
+                        id="brandForm">
                         @csrf
+                        @method('PUT')
                         <div class="card">
                             <div class="card-body">
 
@@ -29,15 +31,17 @@
                                     <div class="col-md-6">
                                         <label for="name" class="form-label">Brand Name</label>
                                         <input type="text" class="form-control" id="name" name="name"
-                                            value="{{ old('name') }}" required>
+                                            value="{{ old('name', $brand->brand) }}" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="image" class="form-label">Brand Image</label>
                                         <input type="file" class="form-control" id="image" name="image"
-                                            accept="image/*" required>
+                                            accept="image/*">
                                         <div class="mt-2">
-                                            <img id="preview-image" src="#" alt="Preview"
-                                                class="img-thumbnail d-none" style="max-width: 150px;">
+                                            <img id="preview-image"
+                                                src="{{ $brand->image ? asset('storage/' . $brand->image) : '#' }}"
+                                                alt="Preview" class="img-thumbnail {{ $brand->image ? '' : 'd-none' }}"
+                                                style="max-width:150px;">
                                         </div>
                                     </div>
                                 </div>
@@ -46,24 +50,25 @@
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
                                     <input id="description" type="hidden" name="description"
-                                        value="{{ old('description') }}">
+                                        value="{{ old('description', $brand->description) }}">
                                     <trix-editor input="description"></trix-editor>
                                 </div>
 
                                 {{-- SIZES --}}
                                 <div class="mb-3">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <label class="form-label">Sizes</label>
-                                        <button type="button" class="btn btn-sm btn-success btn-add-size">+ Add
-                                            Size</button>
-                                    </div>
-                                    <div id="sizes-wrapper">
+                                    @forelse ($brand->sizes as $size)
+                                        <div class="input-group mb-2 size-item">
+                                            <input type="text" name="sizes[]" class="form-control"
+                                                value="{{ old('sizes.' . $loop->index, $size->size) }}" required>
+                                            <button type="button" class="btn btn-danger btn-remove-size">Remove</button>
+                                        </div>
+                                    @empty
                                         <div class="input-group mb-2 size-item">
                                             <input type="text" name="sizes[]" class="form-control"
                                                 placeholder="Enter size" required>
                                             <button type="button" class="btn btn-danger btn-remove-size">Remove</button>
                                         </div>
-                                    </div>
+                                    @endforelse
                                 </div>
 
                                 {{-- VARIANTS --}}
@@ -74,30 +79,38 @@
                                             Variant</button>
                                     </div>
                                     <div id="variants-wrapper">
-                                        <div class="variant-item mb-3 border rounded p-3">
-                                            <div class="input-group mb-2">
-                                                <input type="text" name="variants[name][]" class="form-control"
-                                                    placeholder="Variant name" required>
+                                        @foreach ($brand->variants as $i => $variant)
+                                            <div class="variant-item mb-3 border rounded p-3">
+                                                <div class="input-group mb-2">
+                                                    <input type="text" name="variants[name][]" class="form-control"
+                                                        placeholder="Variant name"
+                                                        value="{{ old('variants.name.' . $i, $variant->variant) }}"
+                                                        required>
+                                                </div>
+
+                                                <div class="mb-2">
+                                                    <input id="variant-desc-{{ $i }}" type="hidden"
+                                                        name="variants[descriptions][]"
+                                                        value="{{ old('variants.descriptions.' . $i, $variant->description) }}"
+                                                        required>
+                                                    <trix-editor input="variant-desc-{{ $i }}"></trix-editor>
+                                                </div>
+
+                                                <input type="file" name="variants[images][]"
+                                                    class="form-control variant-image" accept="image/*">
+
+                                                <div class="mt-2">
+                                                    <img src="{{ $variant->image ? asset('storage/' . $variant->image) : '#' }}"
+                                                        alt="Preview"
+                                                        class="img-thumbnail {{ $variant->image ? '' : 'd-none' }} variant-preview"
+                                                        style="max-width: 150px;">
+                                                </div>
+
+                                                <button type="button"
+                                                    class="btn btn-sm btn-danger mt-2 btn-remove-variant">Remove
+                                                    Variant</button>
                                             </div>
-
-                                            <div class="mb-2">
-                                                <input id="variant-desc-0" type="hidden" name="variants[descriptions][]"
-                                                    required>
-                                                <trix-editor input="variant-desc-0"></trix-editor>
-                                            </div>
-
-                                            <input type="file" name="variants[images][]"
-                                                class="form-control variant-image" accept="image/*" required>
-
-                                            <div class="mt-2">
-                                                <img src="#" alt="Preview"
-                                                    class="img-thumbnail d-none variant-preview" style="max-width: 150px;">
-                                            </div>
-
-                                            <button type="button"
-                                                class="btn btn-sm btn-danger mt-2 btn-remove-variant">Remove
-                                                Variant</button>
-                                        </div>
+                                        @endforeach
                                     </div>
 
                                     <button type="button" class="btn btn-sm btn-success btn-add-variant mt-2">Add
@@ -117,23 +130,27 @@
                                     <div class="col-md-6">
                                         <label for="detail_title" class="form-label">Title</label>
                                         <input type="text" class="form-control" id="detail_title" name="detail_title"
-                                            value="{{ old('detail_title') }}" required>
+                                            value="{{ old('detail_title', $brand->detail->herotitle) }}" required>
                                     </div>
 
                                     <div class="col-md-6">
                                         <label for="detail_subtitle" class="form-label">Sub Title</label>
                                         <input type="text" class="form-control" id="detail_subtitle"
-                                            name="detail_subtitle" value="{{ old('detail_subtitle') }}" required>
+                                            name="detail_subtitle"
+                                            value="{{ old('detail_subtitle', $brand->detail->herosubtitle) }}" required>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_banner" class="form-label">Banner</label>
                                     <input type="file" class="form-control" id="detail_banner" name="detail_banner"
-                                        accept="image/*" required>
+                                        accept="image/*">
                                     <div class="mt-2">
-                                        <img id="preview-image-detail_banner" src="#" alt="Preview"
-                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                        <img id="preview-image-detail_banner"
+                                            src="{{ $brand->detail->banner ? asset('storage/' . $brand->detail->banner) : '' }}"
+                                            alt="Preview"
+                                            class="img-thumbnail {{ $brand->detail->banner ? '' : 'd-none' }}"
+                                            style="max-width: 150px;">
                                     </div>
                                 </div>
 
@@ -144,25 +161,28 @@
                                 <div class="mb-3">
                                     <label for="detail_quotes" class="form-label">Quotes</label>
                                     <input id="detail_quotes" type="text" class="form-control" name="detail_quotes"
-                                        value="{{ old('detail_quotes') }}" required>
+                                        value="{{ old('detail_quotes', $brand->testimonial->quotes) }}" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_text_review" class="form-label">Text Review</label>
                                     <input id="detail_text_review" type="text" class="form-control"
-                                        name="detail_text_review" value="{{ old('detail_text_review') }}" required>
+                                        name="detail_text_review"
+                                        value="{{ old('detail_text_review', $brand->testimonial->textreview) }}" required>
                                 </div>
 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="detail_textcta_review" class="form-label">Text CTA</label>
                                         <input type="text" class="form-control" id="detail_textcta_review"
-                                            name="detail_textcta_review" value="{{ old('detail_textcta_review') }}">
+                                            name="detail_textcta_review"
+                                            value="{{ old('detail_textcta_review', $brand->testimonial->textcta) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_linkcta_review" class="form-label">Link CTA</label>
                                         <input type="text" class="form-control" id="detail_linkcta_review"
-                                            name="detail_linkcta_review" value="{{ old('detail_linkcta_review') }}">
+                                            name="detail_linkcta_review"
+                                            value="{{ old('detail_linkcta_review', $brand->testimonial->linkcta) }}">
                                     </div>
                                 </div>
 
@@ -170,12 +190,14 @@
                                     <div class="col-md-6">
                                         <label for="detail_cardcolor_review" class="form-label">Card Color</label>
                                         <input type="text" class="form-control" id="detail_cardcolor_review"
-                                            name="detail_cardcolor_review" value="{{ old('detail_cardcolor_review') }}">
+                                            name="detail_cardcolor_review"
+                                            value="{{ old('detail_cardcolor_review', $brand->testimonial->cardcolor) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_textcolor_review" class="form-label">Text Color</label>
                                         <input type="text" class="form-control" id="detail_textcolor_review"
-                                            name="detail_textcolor_review" value="{{ old('detail_textcolor_review') }}">
+                                            name="detail_textcolor_review"
+                                            value="{{ old('detail_textcolor_review', $brand->testimonial->textcolor) }}">
                                     </div>
                                 </div>
 
@@ -188,19 +210,21 @@
                                         <label for="detail_marque_bgcolor" class="form-label">Marque Background
                                             Color</label>
                                         <input type="text" class="form-control" id="detail_marque_bgcolor"
-                                            name="detail_marque_bgcolor" value="{{ old('detail_marque_bgcolor') }}">
+                                            name="detail_marque_bgcolor"
+                                            value="{{ old('detail_marque_bgcolor', $brand->feature->marquebgcolor) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_marque_textcolor" class="form-label">Marque Text Color</label>
                                         <input type="text" class="form-control" id="detail_marque_textcolor"
-                                            name="detail_marque_textcolor" value="{{ old('detail_marque_textcolor') }}">
+                                            name="detail_marque_textcolor"
+                                            value="{{ old('detail_marque_textcolor', $brand->feature->textcolor) }}">
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_marque" class="form-label">Marque Text</label>
                                     <input type="hidden" class="form-control" id="detail_marque" name="detail_marque"
-                                        value="{{ old('detail_marque') }}">
+                                        value="{{ old('detail_marque', $brand->feature->features) }}">
                                     <trix-editor input="detail_marque"></trix-editor>
                                 </div>
 
@@ -211,14 +235,15 @@
                                 <div class="mb-3">
                                     <label for="detail_headline_product" class="form-label">Headline</label>
                                     <input type="text" class="form-control" id="detail_headline_product"
-                                        name="detail_headline_product" value="{{ old('detail_headline_product') }}">
+                                        name="detail_headline_product"
+                                        value="{{ old('detail_headline_product', $brand->productsidebar->headline) }}">
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_description_product" class="form-label">Description</label>
                                     <input id="detail_description_product" type="hidden"
                                         name="detail_description_product"
-                                        value="{{ old('detail_description_product') }}">
+                                        value="{{ old('detail_description_product', $brand->productsidebar->description) }}">
                                     <trix-editor input="detail_description_product"></trix-editor>
                                 </div>
 
@@ -226,12 +251,14 @@
                                     <div class="col-md-6">
                                         <label for="detail_ctatext_product" class="form-label">CTA Text</label>
                                         <input type="text" class="form-control" id="detail_ctatext_product"
-                                            name="detail_ctatext_product" value="{{ old('detail_ctatext_product') }}">
+                                            name="detail_ctatext_product"
+                                            value="{{ old('detail_ctatext_product', $brand->productsidebar->ctatext) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_ctalink_product" class="form-label">CTA Link</label>
                                         <input type="text" class="form-control" id="detail_ctalink_product"
-                                            name="detail_ctalink_product" value="{{ old('detail_ctalink_product') }}">
+                                            name="detail_ctalink_product"
+                                            value="{{ old('detail_ctalink_product', $brand->productsidebar->ctalink) }}">
                                     </div>
                                 </div>
 
@@ -240,13 +267,13 @@
                                         <label for="detail_cardcolor_product" class="form-label">Card Color</label>
                                         <input type="text" class="form-control" id="detail_cardcolor_product"
                                             name="detail_cardcolor_product"
-                                            value="{{ old('detail_cardcolor_product') }}">
+                                            value="{{ old('detail_cardcolor_product', $brand->productsidebar->cardcolor) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_textcolor_product" class="form-label">Text Color</label>
                                         <input type="text" class="form-control" id="detail_textcolor_product"
                                             name="detail_textcolor_product"
-                                            value="{{ old('detail_textcolor_product') }}">
+                                            value="{{ old('detail_textcolor_product', $brand->productsidebar->textcolor) }}">
                                     </div>
                                 </div>
 
@@ -257,23 +284,28 @@
                                 <div class="mb-3">
                                     <label for="detail_title_about" class="form-label">Title</label>
                                     <input type="text" class="form-control" id="detail_title_about"
-                                        name="detail_title_about" value="{{ old('detail_title_about') }}">
+                                        name="detail_title_about"
+                                        value="{{ old('detail_title_about', $brand->about->title) }}">
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_description-about" class="form-label">Description</label>
                                     <input type="hidden" class="form-control" id="detail_description-about"
-                                        name="detail_description-about" value="{{ old('detail_description-about') }}">
+                                        name="detail_description-about"
+                                        value="{{ old('detail_description-about', $brand->about->description) }}">
                                     <trix-editor input="detail_description-about"></trix-editor>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_about_image" class="form-label">Image</label>
                                     <input type="file" class="form-control" id="detail_about_image"
-                                        name="detail_about_image" accept="image/*" required>
+                                        name="detail_about_image" accept="image/*">
                                     <div class="mt-2">
-                                        <img id="preview-image-about" src="#" alt="Preview"
-                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                        <img id="preview-image-detail_about_image"
+                                            src="{{ $brand->about->image ? asset('storage/' . $brand->about->image) : '#' }}"
+                                            alt="Preview"
+                                            class="img-thumbnail {{ $brand->about->image ? '' : 'd-none' }}"
+                                            style="max-width: 150px;">
                                     </div>
                                 </div>
 
@@ -281,12 +313,14 @@
                                     <div class="col-md-6">
                                         <label for="detail_about_ctatext" class="form-label">CTA Text</label>
                                         <input type="text" class="form-control" id="detail_about_ctatext"
-                                            name="detail_about_ctatext" value="{{ old('detail_about_ctatext') }}">
+                                            name="detail_about_ctatext"
+                                            value="{{ old('detail_about_ctatext', $brand->about->ctatext) }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label for="detail_about_ctalink" class="form-label">CTA Link</label>
                                         <input type="text" class="form-control" id="detail_about_ctalink"
-                                            name="detail_about_ctalink" value="{{ old('detail_about_ctalink') }}">
+                                            name="detail_about_ctalink"
+                                            value="{{ old('detail_about_ctalink', $brand->about->ctalink) }}">
                                     </div>
                                 </div>
 
@@ -297,35 +331,41 @@
                                 <div class="mb-3">
                                     <label for="detail_tagline_howitwork" class="form-label">Tagline</label>
                                     <input type="text" class="form-control" id="detail_tagline_howitwork"
-                                        name="detail_tagline_howitwork" value="{{ old('detail_tagline_howitwork') }}">
+                                        name="detail_tagline_howitwork"
+                                        value="{{ old('detail_tagline_howitwork', $brand->howitwork->tagline) }}">
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_howitwork_image" class="form-label">Image</label>
                                     <input type="file" class="form-control" id="detail_howitwork_image"
-                                        name="detail_howitwork_image" accept="image/*" required>
+                                        name="detail_howitwork_image" accept="image/*">
                                     <div class="mt-2">
-                                        <img id="preview-image-detail_howitwork_image" src="#" alt="Preview"
-                                            class="img-thumbnail d-none" style="max-width: 150px;">
+                                        <img id="preview-image-detail_howitwork_image"
+                                            src="{{ $brand->howitwork->image ? asset('storage/' . $brand->howitwork->image) : '#' }}"
+                                            alt="Preview"
+                                            class="img-thumbnail {{ $brand->howitwork->image ? '' : 'd-none' }}"
+                                            style="max-width: 150px;">
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_headline_howitwork" class="form-label">Headline</label>
                                     <input type="hidden" class="form-control" id="detail_headline_howitwork"
-                                        name="detail_headline_howitwork" value="{{ old('detail_headline_howitwork') }}">
+                                        name="detail_headline_howitwork"
+                                        value="{{ old('detail_headline_howitwork', $brand->howitwork->headline) }}">
                                     <trix-editor input="detail_headline_howitwork"></trix-editor>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="detail_steps_howitwork" class="form-label">Steps</label>
                                     <input type="hidden" class="form-control" id="detail_steps_howitwork"
-                                        name="detail_steps_howitwork" value="{{ old('detail_steps_howitwork') }}">
+                                        name="detail_steps_howitwork"
+                                        value="{{ old('detail_steps_howitwork', $brand->howitwork->steps) }}">
                                     <trix-editor input="detail_steps_howitwork"></trix-editor>
                                 </div>
 
                                 <div class="mb-3 d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary">Save</button>
+                                    <button type="submit" class="btn btn-primary">Update</button>
                                 </div>
                             </div>
                         </div>
@@ -390,7 +430,7 @@
                             <trix-editor input="variant-desc-${idSuffix}"></trix-editor>
                         </div>
 
-                        <input type="file" name="variants[images][]" class="form-control variant-image" accept="image/*" required>
+                        <input type="file" name="variants[images][]" class="form-control variant-image" accept="image/*">
 
                         <div class="mt-2">
                             <img src="#" alt="Preview" class="img-thumbnail d-none variant-preview" style="max-width: 150px;">

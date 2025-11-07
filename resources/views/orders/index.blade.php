@@ -73,6 +73,24 @@
                                                     data-bs-target="#showItemsModal{{ $item->id }}">
                                                     <i class="ti ti-eye"></i>
                                                 </button>
+
+                                                @if ($item->payment->status == 'settlement')
+                                                    <button type="button"
+                                                        class="btn {{ empty($item->shipping->order_number) ? 'btn-warning' : 'btn-success' }} btn-sm me-1 text-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#showOrderModal{{ $item->id }}"
+                                                        {{ empty($item->shipping->order_number) ? '' : 'disabled' }}>
+
+                                                        @if (empty($item->shipping->order_number))
+                                                            {!! '<i class="ti ti-package me-1"></i> Send Order to Komship' !!}
+                                                        @else
+                                                            <i class="ti ti-check me-1"></i> Order Process Komship Done
+                                                        @endif
+                                                    </button>
+
+                                                    @include('orders.modalorderrequest')
+                                                @endif
+
                                                 @include('orders.modalitems')
                                             </td>
                                         </tr>

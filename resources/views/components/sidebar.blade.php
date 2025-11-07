@@ -97,9 +97,23 @@
                 </li>
 
                 <li class="pc-item">
+                    <a href="{{ route('sliders.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Sliders</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
                     <a href="{{ route('abouts.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
                         <span class="pc-mtext">Abouts</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('footers.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Footers</span>
                     </a>
                 </li>
 

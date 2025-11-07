@@ -61,7 +61,7 @@
                                     <!-- Select Brand -->
                                     <div class="col-md-6">
                                         <label for="brand" class="form-label fw-semibold">Brand</label>
-                                        <select name="brand" id="brand" class="form-select">
+                                        <select name="brand" id="brand" class="form-select" required>
                                             <option value="" disabled selected>-- Pilih Brand --</option>
                                             @foreach ($brands as $brand)
                                                 <option value="{{ $brand->id }}">{{ $brand->brand }}</option>

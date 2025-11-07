@@ -146,7 +146,7 @@ class MasterAPIController extends Controller
                 'brand' => $variant->brand->brand ?? null,
                 'variant' => $variant->variant,
                 'image' => asset('storage/' . $variant->image),
-                'description' => $variant->brand->description ?? null,
+                'description' => $variant->description,
                 'created_at' => $variant->created_at,
                 'updated_at' => $variant->updated_at,
             ];
@@ -170,11 +170,15 @@ class MasterAPIController extends Controller
      */
     public function products()
     {
-        $variants = Variant::with('sizes')->orderBy('id', 'desc')->get();
+        $variants = Variant::with(['sizes.size', 'product.brand', 'category', 'images'])
+            ->orderBy('id', 'desc')
+            ->get();
+
         $data = ProductResource::collection($variants);
 
         return response()->json(['data' => $data], 200);
     }
+
 
     /*
      * Get Detail Product

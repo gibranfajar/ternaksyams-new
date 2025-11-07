@@ -10,111 +10,88 @@ use Illuminate\Support\Facades\Storage;
 class AboutController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the About page (single record).
      */
     public function index()
     {
-        $about = About::first();
+        $about = About::with(['partnerSection', 'profileSection', 'whyUsFeatures'])->first();
         return view('abouts.index', compact('about'));
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(About $about)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(About $about)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Store (create if not exist) or update About data.
      */
     public function update(Request $request, $id)
     {
         $about = About::with(['partnerSection', 'profileSection'])->findOrFail($id);
 
-        // Hero Image
+        // --- VALIDASI DASAR ---
+        $request->validate([
+            'hero_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'partner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        // --- HERO IMAGE ---
         if ($request->hasFile('hero_image_file')) {
-            if ($about->hero_image && Storage::exists($about->hero_image)) {
-                Storage::delete($about->hero_image);
+            // hapus gambar lama jika ada
+            if ($about->hero_image && Storage::disk('public')->exists($about->hero_image)) {
+                Storage::disk('public')->delete($about->hero_image);
             }
+
+            // simpan gambar baru
             $about->hero_image = $request->file('hero_image_file')->store('about_images', 'public');
         }
 
-        // Partner Image
+        // --- PARTNER IMAGE ---
         $partner = $about->partnerSection;
-        if ($request->hasFile('partner_image_file')) {
-            if ($partner->image_url && Storage::exists($partner->image_url)) {
-                Storage::delete($partner->image_url);
+        if ($partner && $request->hasFile('partner_image_file')) {
+            if ($partner->image_url && Storage::disk('public')->exists($partner->image_url)) {
+                Storage::disk('public')->delete($partner->image_url);
             }
+
             $partner->image_url = $request->file('partner_image_file')->store('about_images', 'public');
         }
 
-        // Update About utama
+        // --- UPDATE DATA UTAMA (ABOUT) ---
         $about->update([
-            'hero_title' => $request->hero_title,
-            'hero_subtitle' => $request->hero_subtitle,
-            'tagline' => $request->tagline,
-            'achievement_count' => $request->achievement_count,
-            'achievement_label' => $request->achievement_label,
+            'hero_title'         => $request->hero_title,
+            'hero_subtitle'      => $request->hero_subtitle,
+            'tagline'            => $request->tagline,
+            'achievement_count'  => $request->achievement_count,
+            'achievement_label'  => $request->achievement_label,
+            'hero_image'         => $about->hero_image, // pastikan ter-update
         ]);
 
-        // Update Partner Section
-        $partner->update([
-            'title' => $request->partner_title,
-            'description' => $request->partner_description,
-        ]);
+        // --- UPDATE PARTNER SECTION ---
+        if ($partner) {
+            $partner->update([
+                'title'       => $request->partner_title,
+                'description' => $request->partner_description,
+                'image_url'   => $partner->image_url ?? $partner->getOriginal('image_url'),
+            ]);
+        }
 
-        // Update Profile Section
+        // --- UPDATE PROFILE SECTION ---
         $profile = $about->profileSection;
-        $profile->update([
-            'founding_year' => $request->founding_year,
-            'mission' => $request->mission,
-            'image_embed_url' => $request->image_embed_url,
-        ]);
+        if ($profile) {
+            $profile->update([
+                'founding_year'   => $request->founding_year,
+                'mission'         => $request->mission,
+                'image_embed_url' => $request->image_embed_url,
+            ]);
+        }
 
-        // Why Us Features
+        // --- UPDATE WHY US FEATURES ---
         $about->whyUsFeatures()->delete();
-        if ($request->has('why_us_features')) {
+
+        if ($request->filled('why_us_features')) {
             foreach ($request->why_us_features as $feature) {
-                if ($feature) {
+                if (trim($feature) !== '') {
                     $about->whyUsFeatures()->create(['text' => $feature]);
                 }
             }
         }
 
-        return redirect()->back()->with('success', 'About berhasil diperbarui!');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(About $about)
-    {
-        //
+        return redirect()->back()->with('success', 'About page berhasil diperbarui!');
     }
 }

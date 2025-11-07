@@ -2,8 +2,8 @@
 
 namespace App\Mail;
 
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -13,12 +13,16 @@ class OrderInvoiceMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $order;
+    public $paymentUrl;
+
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct(Order $order, $paymentUrl = null)
     {
-        //
+        $this->order = $order;
+        $this->paymentUrl = $paymentUrl;
     }
 
     /**
@@ -27,7 +31,7 @@ class OrderInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order Invoice Mail',
+            subject: 'Invoice ' . $this->order->invoice,
         );
     }
 
@@ -37,7 +41,11 @@ class OrderInvoiceMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.order_invoice',
+            view: 'emails.order_invoice',
+            with: [
+                'order' => $this->order,
+                'paymentUrl' => $this->paymentUrl,
+            ],
         );
     }
 

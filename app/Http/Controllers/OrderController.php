@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Shipping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -20,8 +21,106 @@ class OrderController extends Controller
      */
     public function pickup()
     {
-        $orders = Order::orderBy('id', 'desc')->where('status', 'processing')->get();
+        $orders = Order::where('status', 'processing')
+            ->whereHas('shipping', function ($query) {
+                $query->whereNotNull('order_number')
+                    ->where('order_number', '!=', '');
+            })
+            ->orderByDesc('id')
+            ->get();
+
         return view('orders.pickup', compact('orders'));
+    }
+
+
+    /**
+     * Request order to komship
+     */
+    public function orderRequest(Order $order)
+    {
+        try {
+            // ✅ Pastikan relasi lengkap
+            if (!$order->shipping || !$order->shipping->shippingInfo || !$order->shipping->shippingOption) {
+                return back()->with('error', 'Data pengiriman belum lengkap untuk order ini.');
+            }
+
+            // ✅ Bangun item details
+            $itemDetailsKomship = $order->items->map(function ($item) {
+                return [
+                    "product_name" => $item->name,
+                    "product_variant_name" => ($item->variant ?? '-') . ' - ' . ($item->size ?? '-'),
+                    "product_price" => $item->price,
+                    "product_weight" => intval(optional($item->variantSize->size)->label ?? 0),
+                    "product_width" => 0,
+                    "product_height" => 0,
+                    "product_length" => 0,
+                    "qty" => $item->qty,
+                    "subtotal" => $item->total,
+                ];
+            })->toArray();
+
+            // ✅ Persiapkan data pengiriman (pakai $order, bukan $orderItem)
+            $shippingInfo = $order->shipping->shippingInfo;
+            $shippingOption = $order->shipping->shippingOption;
+
+            // ✅ Request ke Komship
+            $response = Http::withHeaders([
+                'x-api-key' => env('RAJAONGKIR_DELIVERY_API_KEY'),
+                'Accept' => 'application/json',
+            ])->post('https://api-sandbox.collaborator.komerce.id/order/api/v1/orders/store', [
+                "order_date" => now()->toDateTimeString(),
+                "brand_name" => "TernakSyams",
+                "shipper_name" => "TernakSyams",
+                "shipper_phone" => "-",
+                "shipper_destination_id" => 2163,
+                "shipper_address" => "Komplek Kramayudha. Blok D5 No.10, RT003/018, Mekarsari, Cimanggis, Depok, 16452",
+                "shipper_email" => "ternaksyams.id@gmail.com",
+                "receiver_name" => $shippingInfo->name,
+                "receiver_phone" => $shippingInfo->phone,
+                "receiver_destination_id" => $shippingInfo->destination_id,
+                "receiver_address" => $shippingInfo->address,
+                "receiver_email" => $shippingInfo->email,
+                "shipping" => strtoupper($shippingOption->expedition),
+                "shipping_type" => strtoupper($shippingOption->service),
+                "payment_method" => "BANK TRANSFER",
+                "shipping_cost" => $shippingOption->cost,
+                "shipping_cashback" => 0,
+                "service_fee" => 0,
+                "additional_cost" => 0,
+                "grand_total" => $order->total,
+                "cod_value" => 0,
+                "insurance_value" => 0,
+                "order_details" => $itemDetailsKomship,
+            ]);
+
+            // ✅ Cek hasil response
+            if ($response->failed()) {
+                Log::error('Komship API Error', [
+                    'order_id' => $order->id,
+                    'response' => $response->json(),
+                ]);
+                return back()->with('error', 'Gagal mengirim data ke Komship. Silakan coba lagi.');
+            }
+
+            // ✅ Ambil data response
+            $result = data_get($response->json(), 'data');
+            if (!$result || !isset($result['order_no'])) {
+                return back()->with('error', 'Response dari Komship tidak valid.');
+            }
+
+            // ✅ Update shipping order number
+            $order->shipping()->update([
+                'order_number' => $result['order_no'],
+            ]);
+
+            return redirect()->route('orders.index')->with('success', 'Order berhasil dikirim ke Komship.');
+        } catch (\Throwable $e) {
+            Log::error('Komship Request Error', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Terjadi kesalahan internal: ' . $e->getMessage());
+        }
     }
 
     /**
