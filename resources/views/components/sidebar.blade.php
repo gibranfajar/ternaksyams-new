@@ -36,6 +36,13 @@
                 </li>
 
                 <li class="pc-item">
+                    <a href="{{ route('testimonials.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Testimonials</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
                     <a href="{{ route('footers.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
                         <span class="pc-mtext">Footers</span>

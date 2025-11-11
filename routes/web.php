@@ -19,6 +19,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\SliderController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\VideoPlayerController;
 use App\Http\Controllers\VoucherController;
@@ -63,6 +64,9 @@ Route::patch('articles/{article}/toggle-status', [ArticleController::class, 'tog
 Route::resource('category-tutorials', CategoryTutorialController::class);
 Route::resource('tutorials', TutorialController::class);
 Route::patch('tutorials/{tutorial}/toggle-status', [TutorialController::class, 'toggleStatus'])->name('tutorials.toggleStatus');
+
+Route::resource('testimonials', TestimonialController::class);
+Route::patch('testimonials/{testimonial}/toggle-status', [TestimonialController::class, 'toggleStatus'])->name('testimonials.toggleStatus');
 
 Route::resource('category-faqs', CategoryFaqController::class);
 Route::resource('faqs', FaqController::class);

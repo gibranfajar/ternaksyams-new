@@ -31,6 +31,8 @@ Route::get('/sliders', [MasterAPIController::class, 'getSliders']);
 
 Route::get('/footers', [MasterAPIController::class, 'getFooters']);
 
+Route::get('/testimonials', [MasterAPIController::class, 'getTestimonials']);
+
 Route::prefix('/cart')->group(function () {
     Route::post('add', [CartController::class, 'addToCart']);
     Route::post('list', [CartController::class, 'getCart']);

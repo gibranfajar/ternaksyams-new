@@ -23,6 +23,7 @@ use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Reseller;
 use App\Models\Slider;
+use App\Models\Testimonial;
 use App\Models\Tutorial;
 use App\Models\User;
 use App\Models\Variant;
@@ -451,5 +452,12 @@ class MasterAPIController extends Controller
     {
         $videoPlayers = VideoPlayer::first();
         return response()->json($videoPlayers, 200);
+    }
+
+    // get testimonials
+    public function getTestimonials()
+    {
+        $testimonials = Testimonial::where('status', true)->get();
+        return response()->json($testimonials, 200);
     }
 }
