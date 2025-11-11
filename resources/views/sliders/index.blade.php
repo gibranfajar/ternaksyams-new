@@ -34,7 +34,8 @@
                                         <th style="width: 5%" class="text-center">No</th>
                                         <th>Image</th>
                                         <th>Title</th>
-                                        <th style="width: 10%" class="text-center">Action</th>
+                                        <th>Status</th>
+                                        <th style="width: 30%" class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -46,8 +47,34 @@
                                                     width="60" class="rounded">
                                             </td>
                                             <td class="align-middle">{{ $item->title }}</td>
+                                            <td class="align-middle">
+                                                @if ($item->status)
+                                                    <span class="badge bg-success">Active</span>
+                                                @else
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                @endif
+                                            </td>
                                             <td class="align-middle text-center">
                                                 <div class="d-inline-flex align-items-center gap-2">
+
+                                                    {{-- tombol ubah status --}}
+                                                    <form action="{{ route('sliders.toggleStatus', $item->id) }}"
+                                                        method="POST" class="m-0 p-0 d-inline">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        @if ($item->status)
+                                                            <button type="submit" class="btn btn-secondary btn-sm"
+                                                                title="Active">
+                                                                Set Inactive
+                                                            </button>
+                                                        @else
+                                                            <button type="submit" class="btn btn-success btn-sm"
+                                                                title="Inactive">
+                                                                Set Active
+                                                            </button>
+                                                        @endif
+                                                    </form>
+
                                                     <!-- Tombol Edit -->
                                                     <button type="button" class="btn btn-warning btn-sm"
                                                         data-bs-toggle="modal"

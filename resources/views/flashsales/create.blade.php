@@ -3,7 +3,6 @@
 @section('content')
     <div class="pc-container">
         <div class="pc-content">
-            <!-- [ breadcrumb ] start -->
             <div class="page-header">
                 <div class="page-block">
                     <div class="row align-items-center">
@@ -15,25 +14,23 @@
                     </div>
                 </div>
             </div>
-            <!-- [ breadcrumb ] end -->
 
-            <!-- [ Main Content ] start -->
             <div class="card">
                 <div class="card-body">
-                    <!-- Header -->
                     <h5 class="card-title mb-3">Create New Flashsale</h5>
 
-                    {{-- form --}}
                     <form action="{{ route('flash-sales.store') }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label for="title" class="form-label">Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
                         </div>
+
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea name="description" class="form-control" id="description" rows="5"></textarea>
                         </div>
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="start_date" class="form-label">Start Date</label>
@@ -52,12 +49,10 @@
                                 data-bs-target="#addFlashSaleModal">Add Product</button>
                         </div>
 
-                        {{-- Selected Products List --}}
                         <div class="my-3">
                             <ul class="list-group" id="selected-products-list"></ul>
                         </div>
 
-                        {{-- button --}}
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">Create Flash Sale</button>
                         </div>
@@ -65,65 +60,60 @@
                 </div>
             </div>
 
-            {{-- modal add products --}}
             @include('flashsales.modal')
-
-            <!-- [ Main Content ] end -->
         </div>
     </div>
 
-    <script>
-        $(document).ready(function() {
-            // Saat klik tombol Add Selected Products
-            $("#btn-add-products").on("click", function() {
+    @push('scripts')
+        <script>
+            $(document).ready(function() {
+                $(document).on('product:selected', function(e, groupedVariants) {
+                    groupedVariants.forEach(variant => {
+                        const {
+                            variant_id,
+                            variant_name,
+                            variant_image,
+                            sizes
+                        } = variant;
 
-                // Kosongkan list lama
-                $("#selected-products-list").empty();
+                        // pastikan variant_name tampil
+                        const safeName = variant_name || 'Unnamed Variant';
 
-                // Loop semua checkbox yang dicentang
-                $("#addFlashSaleModal input.form-check-input:checked").each(function() {
-                    let $card = $(this).closest(".card");
+                        // Hapus varian lama biar update
+                        $(`#selected-products-list li[data-variant-id="${variant_id}"]`).remove();
 
-                    let productId = $(this).val();
-                    let productName = $card.find("label.fw-bold").text().trim();
-                    let imgSrc = $card.find("img").attr("src");
-                    let discount = $card.find("input[name*='[discount]']").val();
-                    let qty = $card.find("input[name*='[qty]']").val();
+                        let sizeList = '';
+                        sizes.forEach(size => {
+                            sizeList += `
+                    <li class="ms-3 small border-bottom py-1">
+                        • ${size.size_name} gr — Diskon: ${size.discount}% | Qty: ${size.qty}
+                        <input type="hidden" name="selected_products[${variant_id}][variant_id]" value="${variant_id}">
+                        <input type="hidden" name="selected_products[${variant_id}][sizes][${size.size_id}][variant_size_id]" value="${size.size_id}">
+                        <input type="hidden" name="selected_products[${variant_id}][sizes][${size.size_id}][discount]" value="${size.discount}">
+                        <input type="hidden" name="selected_products[${variant_id}][sizes][${size.size_id}][qty]" value="${size.qty}">
+                    </li>`;
+                        });
 
-                    // Buat element list baru
-                    let li = `
-                    <li class="list-group-item d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <img src="${imgSrc}" width="40" height="40" class="rounded me-2">
-                            <div>
-                                <div class="fw-bold">${productName}</div>
-                                <small>Discount: ${discount}% | Qty: ${qty}</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <!-- delete -->
-                            <button type="button" class="btn btn-sm btn-danger ms-2 remove-product">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                        <!-- hidden input biar ikut tersubmit -->
-                        <input type="hidden" name="selected_products[${productId}][id]" value="${productId}">
-                        <input type="hidden" name="selected_products[${productId}][discount]" value="${discount}">
-                        <input type="hidden" name="selected_products[${productId}][qty]" value="${qty}">
-                    </li>
-                    `;
+                        const li = `
+                <li class="list-group-item" data-variant-id="${variant_id}">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="${variant_image}" width="50" height="50" class="rounded me-2" alt="${safeName}">
+                        <div class="fw-bold">${safeName}</div>
+                        <button type="button" class="btn btn-danger btn-sm ms-auto remove-product">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <ul class="list-unstyled mb-0">${sizeList}</ul>
+                </li>`;
 
-                    $("#selected-products-list").append(li);
+                        $("#selected-products-list").append(li);
+                    });
                 });
 
-                // Tutup modal
-                $("#addFlashSaleModal").modal("hide");
+                $(document).on("click", ".remove-product", function() {
+                    $(this).closest("li").remove();
+                });
             });
-
-            // Event delegation untuk tombol Remove
-            $(document).on("click", ".remove-product", function() {
-                $(this).closest("li").remove();
-            });
-        });
-    </script>
+        </script>
+    @endpush
 @endsection

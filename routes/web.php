@@ -20,13 +20,16 @@ use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\TutorialController;
+use App\Http\Controllers\VideoPlayerController;
 use App\Http\Controllers\VoucherController;
 use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+Route::resource('video-players', VideoPlayerController::class);
 Route::resource('sliders', SliderController::class);
+Route::patch('sliders/{slider}/toggle-status', [SliderController::class, 'toggleStatus'])->name('sliders.toggleStatus');
 Route::resource('abouts', AboutController::class);
 Route::resource('footers', FooterController::class);
 Route::resource('categories', CategoryController::class);
@@ -36,6 +39,8 @@ Route::resource('brands', BrandController::class);
 Route::resource('products', ProductController::class);
 Route::patch('variants/{variant}/toggle-status', [ProductController::class, 'toggleStatus'])->name('variants.toggleStatus');
 Route::resource('flash-sales', FlashSaleController::class);
+Route::get('/variants/{variant}/sizes', [FlashSaleController::class, 'getSizes']);
+
 
 Route::resource('benefits', BenefitController::class);
 Route::patch('benefits/{benefit}/toggle-status', [BenefitController::class, 'toggleStatus'])->name('benefits.toggleStatus');

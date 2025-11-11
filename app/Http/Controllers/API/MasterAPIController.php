@@ -18,12 +18,15 @@ use App\Models\Brand;
 use App\Models\BrandVariant;
 use App\Models\Category;
 use App\Models\Faq;
+use App\Models\Footer;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Reseller;
+use App\Models\Slider;
 use App\Models\Tutorial;
 use App\Models\User;
 use App\Models\Variant;
+use App\Models\VideoPlayer;
 use App\Models\Voucher;
 use App\Models\VoucherProduct;
 use App\Models\VoucherUsage;
@@ -427,5 +430,26 @@ class MasterAPIController extends Controller
     {
         $faqs = Faq::with(['category'])->get();
         return response()->json($faqs, 200);
+    }
+
+    // get slider
+    public function getSliders()
+    {
+        $sliders = Slider::all();
+        return response()->json($sliders, 200);
+    }
+
+    // get footers
+    public function getFooters()
+    {
+        $footers = Footer::with(['informations', 'etawas'])->get();
+        return response()->json($footers, 200);
+    }
+
+    // get video players
+    public function getVideoPlayers()
+    {
+        $videoPlayers = VideoPlayer::first();
+        return response()->json($videoPlayers, 200);
     }
 }

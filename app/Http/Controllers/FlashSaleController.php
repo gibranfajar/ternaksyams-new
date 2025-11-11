@@ -38,6 +38,7 @@ class FlashSaleController extends Controller
      */
     public function store(Request $request)
     {
+        dd($request->all());
         try {
             $selectedProducts = $request->selected_products;
 
@@ -182,5 +183,25 @@ class FlashSaleController extends Controller
     public function destroy(FlashSale $flashSale)
     {
         //
+    }
+
+    public function getSizes($variantId)
+    {
+        $sizes = VariantSize::with('size')
+            ->where('variant_id', $variantId)
+            ->get()
+            ->map(function ($vs) {
+                return [
+                    'id' => $vs->id,
+                    'size_name' => $vs->size->label ?? '-',
+                    'stock' => $vs->stock,
+                    'price' => $vs->price,
+                    'discount' => $vs->discount,
+                    'type_disc' => $vs->type_disc,
+                    'price_after_discount' => $vs->price_after_discount,
+                ];
+            });
+
+        return response()->json($sizes);
     }
 }

@@ -14,6 +14,34 @@
                     </a>
                 </li>
 
+                <li class="pc-item">
+                    <a href="{{ route('video-players.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Video Players</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('sliders.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Sliders</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('abouts.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Abouts</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('footers.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
+                        <span class="pc-mtext">Footers</span>
+                    </a>
+                </li>
+
                 <li class="pc-item pc-hasmenu">
                     <a class="pc-link">
                         <span class="pc-micon"><i class="ti ti-menu-2"></i></span>
@@ -93,27 +121,6 @@
                     <a href="{{ route('vouchers.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-receipt-tax"></i></span>
                         <span class="pc-mtext">Vouchers</span>
-                    </a>
-                </li>
-
-                <li class="pc-item">
-                    <a href="{{ route('sliders.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
-                        <span class="pc-mtext">Sliders</span>
-                    </a>
-                </li>
-
-                <li class="pc-item">
-                    <a href="{{ route('abouts.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
-                        <span class="pc-mtext">Abouts</span>
-                    </a>
-                </li>
-
-                <li class="pc-item">
-                    <a href="{{ route('footers.index') }}" class="pc-link">
-                        <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
-                        <span class="pc-mtext">Footers</span>
                     </a>
                 </li>
 

@@ -25,6 +25,12 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/abouts', [MasterAPIController::class, 'abouts']);
 
+Route::get('/video-players', [MasterAPIController::class, 'getVideoPlayers']);
+
+Route::get('/sliders', [MasterAPIController::class, 'getSliders']);
+
+Route::get('/footers', [MasterAPIController::class, 'getFooters']);
+
 Route::prefix('/cart')->group(function () {
     Route::post('add', [CartController::class, 'addToCart']);
     Route::post('list', [CartController::class, 'getCart']);

@@ -182,7 +182,6 @@ class BrandController extends Controller
                 $brandImage = $request->file('image')->store('brands', 'public');
             }
 
-            // === 2️⃣ Update data utama brand ===
             $brand->update([
                 'brand' => $request->name,
                 'slug' => Str::slug($request->name),
@@ -190,8 +189,8 @@ class BrandController extends Controller
                 'image' => $brandImage,
             ]);
 
-            // === 3️⃣ Update brand_sizes ===
-            $brand->sizes()->delete(); // hapus dulu semua ukuran lama
+            // === 2️⃣ Sizes ===
+            $brand->sizes()->delete();
             if ($request->filled('sizes')) {
                 foreach ($request->sizes as $size) {
                     BrandSize::create([
@@ -201,29 +200,43 @@ class BrandController extends Controller
                 }
             }
 
-            // === 4️⃣ Update brand_variants ===
+            // === 3️⃣ Variants ===
             $brand->variants()->delete();
+
             if (!empty($request->variants['name'])) {
                 foreach ($request->variants['name'] as $index => $variantName) {
-                    $variantImage = null;
                     $variantDescription = $request->variants['descriptions'][$index] ?? null;
+                    $oldImage = $request->variants['old_images'][$index] ?? null;
+                    $variantImage = $oldImage; // default: gambar lama
 
-                    if (!empty($request->variants['images'][$index])) {
+                    // kalau upload baru, replace yang lama
+                    if (
+                        !empty($request->variants['images'][$index]) &&
+                        $request->variants['images'][$index] instanceof \Illuminate\Http\UploadedFile
+                    ) {
+
+                        // hapus gambar lama kalau ada
+                        if ($oldImage && Storage::disk('public')->exists($oldImage)) {
+                            Storage::disk('public')->delete($oldImage);
+                        }
+
                         $variantImage = $request->variants['images'][$index]->store('brand_variants', 'public');
                     }
 
+                    // fallback aman kalau masih null, bisa isi string kosong
                     BrandVariant::create([
                         'brand_id'    => $brand->id,
                         'variant'     => $variantName,
                         'description' => $variantDescription,
-                        'image'       => $variantImage,
+                        'image'       => $variantImage ?? '', // biar gak null
                     ]);
                 }
             }
 
-            // === 5️⃣ Update brand_detail ===
+
+            // === 4️⃣ Detail ===
             $detail = $brand->detail;
-            $bannerPath = $detail ? $detail->banner : null;
+            $bannerPath = $detail?->banner;
 
             if ($request->hasFile('detail_banner')) {
                 if ($bannerPath && Storage::disk('public')->exists($bannerPath)) {
@@ -241,7 +254,7 @@ class BrandController extends Controller
                 ]
             );
 
-            // === 6️⃣ Update brand_testimonial ===
+            // === 5️⃣ Testimonial ===
             $brand->testimonial()->updateOrCreate(
                 ['brand_id' => $brand->id],
                 [
@@ -254,7 +267,7 @@ class BrandController extends Controller
                 ]
             );
 
-            // === 7️⃣ Update brand_feature ===
+            // === 6️⃣ Feature ===
             $brand->feature()->updateOrCreate(
                 ['brand_id' => $brand->id],
                 [
@@ -264,7 +277,7 @@ class BrandController extends Controller
                 ]
             );
 
-            // === 8️⃣ Update brand_productsidebar ===
+            // === 7️⃣ Product Sidebar ===
             $brand->productsidebar()->updateOrCreate(
                 ['brand_id' => $brand->id],
                 [
@@ -277,9 +290,9 @@ class BrandController extends Controller
                 ]
             );
 
-            // === 9️⃣ Update brand_about ===
+            // === 8️⃣ About ===
             $about = $brand->about;
-            $aboutImage = $about ? $about->image : null;
+            $aboutImage = $about?->image;
 
             if ($request->hasFile('detail_about_image')) {
                 if ($aboutImage && Storage::disk('public')->exists($aboutImage)) {
@@ -292,16 +305,16 @@ class BrandController extends Controller
                 ['brand_id' => $brand->id],
                 [
                     'title' => $request->detail_title_about,
-                    'description' => $request->{'detail_description-about'},
+                    'description' => $request->input('detail_description-about'),
                     'image' => $aboutImage,
                     'ctatext' => $request->detail_about_ctatext,
                     'ctalink' => $request->detail_about_ctalink,
                 ]
             );
 
-            // === 🔟 Update brand_howitwork ===
+            // === 9️⃣ How It Work ===
             $howitwork = $brand->howitwork;
-            $howImage = $howitwork ? $howitwork->image : null;
+            $howImage = $howitwork?->image;
 
             if ($request->hasFile('detail_howitwork_image')) {
                 if ($howImage && Storage::disk('public')->exists($howImage)) {

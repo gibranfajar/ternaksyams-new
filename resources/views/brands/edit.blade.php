@@ -80,6 +80,8 @@
                                     </div>
                                     <div id="variants-wrapper">
                                         @foreach ($brand->variants as $i => $variant)
+                                            <input type="hidden" name="variants[old_images][{{ $i }}]"
+                                                value="{{ $variant->image }}">
                                             <div class="variant-item mb-3 border rounded p-3">
                                                 <div class="input-group mb-2">
                                                     <input type="text" name="variants[name][]" class="form-control"
@@ -217,7 +219,7 @@
                                         <label for="detail_marque_textcolor" class="form-label">Marque Text Color</label>
                                         <input type="text" class="form-control" id="detail_marque_textcolor"
                                             name="detail_marque_textcolor"
-                                            value="{{ old('detail_marque_textcolor', $brand->feature->textcolor) }}">
+                                            value="{{ old('detail_marque_textcolor', $brand->feature->marquetextcolor) }}">
                                     </div>
                                 </div>
 

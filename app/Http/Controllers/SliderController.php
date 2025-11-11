@@ -101,6 +101,17 @@ class SliderController extends Controller
         }
     }
 
+    public function toggleStatus(Slider $slider)
+    {
+        try {
+            $slider->status = !$slider->status;
+            $slider->save();
+            return redirect()->route('sliders.index')->with('success', 'Slider status updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('sliders.index')->with('error', 'Failed to update slider status.');
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */

@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('flashsale_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('flashsale_id')->constrained('flash_sales')->onDelete('cascade');
-            $table->foreignId('variant_id')->constrained('variants')->onDelete('cascade');
-            $table->integer('size');
+            $table->foreignId('flashsale_id')->constrained('flash_sales');
+            $table->foreignId('variant_id')->constrained('variants');
+            $table->foreignId('variantsize_id')->constrained('variant_sizes');
             $table->integer('stock');
             $table->integer('discount');
             $table->integer('flashsale_price');
