@@ -436,7 +436,7 @@ class MasterAPIController extends Controller
     // get slider
     public function getSliders()
     {
-        $sliders = Slider::all();
+        $sliders = Slider::where('status', true)->get();
         return response()->json($sliders, 200);
     }
 
