@@ -32,6 +32,67 @@ class OrderController extends Controller
         return view('orders.pickup', compact('orders'));
     }
 
+    /**
+     * Print shipping labels
+     */
+    public function printLabel()
+    {
+        $orders = Order::where('status', 'packaging')
+            ->whereHas('shipping', function ($query) {
+                $query->whereNotNull('order_number')
+                    ->where('order_number', '!=', '');
+            })
+            ->orderByDesc('id')
+            ->get();
+
+        return view('orders.printLabel', compact('orders'));
+    }
+
+
+    public function labelStore(Request $request)
+    {
+        $request->validate([
+            'selected_orders' => 'required|array|min:1',
+        ]);
+
+        $orderNos = implode(',', $request->selected_orders);
+
+        $query = http_build_query([
+            'page' => 'page_6',
+            'order_no' => $orderNos,
+        ]);
+
+        try {
+            $response = Http::withHeaders([
+                'Accept'    => 'application/json',
+                'x-api-key' => env('RAJAONGKIR_DELIVERY_API_KEY'),
+            ])->post("https://api-sandbox.collaborator.komerce.id/order/api/v1/orders/print-label?$query");
+
+            $data = $response->json();
+
+            if ($response->failed() || ($data['meta']['status'] ?? '') === 'error') {
+                return response()->json([
+                    'success' => false,
+                    'message' => $data['meta']['message'] ?? 'Gagal generate label',
+                    'detail'  => $data['data'] ?? '',
+                ], 422);
+            }
+
+            $pdfPath = $data['data']['path'] ?? null;
+            if ($pdfPath) {
+                $url = 'https://api-sandbox.collaborator.komerce.id/order' . $pdfPath;
+                return response()->json(['success' => true, 'url' => $url]);
+            }
+
+            return response()->json(['success' => false, 'message' => 'File path tidak ditemukan'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+
+
+
 
     /**
      * Request order to komship
@@ -111,6 +172,11 @@ class OrderController extends Controller
             // ✅ Update shipping order number
             $order->shipping()->update([
                 'order_number' => $result['order_no'],
+            ]);
+
+            // ✅ Update order status
+            $order->update([
+                'status' => 'packaging',
             ]);
 
             return redirect()->route('orders.index')->with('success', 'Order berhasil dikirim ke Komship.');

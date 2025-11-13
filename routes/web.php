@@ -52,6 +52,8 @@ Route::resource('promotions', PromotionController::class);
 
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('orders/pickup', [OrderController::class, 'pickup'])->name('orders.pickup');
+Route::get('orders/print-label', [OrderController::class, 'printLabel'])->name('orders.printLabel');
+Route::post('orders/labelstore', [OrderController::class, 'labelStore'])->name('orders.labelstore');
 Route::post('orders/pickup', [OrderController::class, 'pickupStore'])->name('orders.pickup.store');
 Route::post('orders/request/{order}', [OrderController::class, 'orderRequest'])->name('orders.request-order');
 

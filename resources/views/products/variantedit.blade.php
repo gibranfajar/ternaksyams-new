@@ -195,18 +195,18 @@
             });
         }
 
-        function updateAllRealPrice() {
-            $(".size-item").each(function() {
-                let price = parseFloat($(this).find("input[name$='[price]']").val()) || 0;
-                let discount = parseFloat($(this).find("input[name$='[discount]']").val()) || 0;
-                let realPrice = price - (price * discount / 100);
-                $(this).find("input[name$='[real_price]']").val(realPrice.toFixed(0));
-            });
-        }
+        // function updateAllRealPrice() {
+        //     $(".size-item").each(function() {
+        //         let price = parseFloat($(this).find("input[name$='[price]']").val()) || 0;
+        //         let discount = parseFloat($(this).find("input[name$='[discount]']").val()) || 0;
+        //         let realPrice = price - (price * discount / 100);
+        //         $(this).find("input[name$='[real_price]']").val(realPrice.toFixed(0));
+        //     });
+        // }
 
-        $(document).ready(function() {
-            updateAllRealPrice(); // trigger saat page load
-        });
+        // $(document).ready(function() {
+        //     updateAllRealPrice(); // trigger saat page load
+        // });
 
 
         // sortable images

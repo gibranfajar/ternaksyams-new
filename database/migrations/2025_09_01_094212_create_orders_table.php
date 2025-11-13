@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('session')->nullable();
             $table->string('invoice');
-            $table->enum('status', ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'failed', 'expired'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'processing', 'packaging', 'shipped', 'delivered', 'cancelled', 'failed', 'expired'])->default('pending');
             $table->integer('total');
             $table->text('note')->nullable();
             $table->timestamps();

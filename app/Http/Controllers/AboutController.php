@@ -25,25 +25,33 @@ class AboutController extends Controller
     {
         $about = About::with(['partnerSection', 'profileSection'])->findOrFail($id);
 
-        // --- VALIDASI DASAR ---
+        // --- VALIDASI ---
         $request->validate([
-            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image1' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image2' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image3' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image4' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'hero_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'banner'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image1'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image2'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image3'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image4'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'hero_image_file'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'partner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         // --- FILE UPLOAD ---
-        $fileFields = ['banner', 'image1', 'image2', 'image3', 'image4', 'hero_image_file', 'partner_image_file'];
+        $fileFields = [
+            'banner',
+            'image1',
+            'image2',
+            'image3',
+            'image4',
+            'hero_image_file',
+            'partner_image_file'
+        ];
+        $storagePath = 'about_images';
+
         foreach ($fileFields as $field) {
             if ($request->hasFile($field)) {
                 $oldFile = null;
-                $storagePath = 'about_images';
 
-                // tentukan file lama
                 if (in_array($field, ['banner', 'image1', 'image2', 'image3', 'image4'])) {
                     $oldFile = $about->$field;
                 } elseif ($field === 'hero_image_file') {
@@ -52,59 +60,46 @@ class AboutController extends Controller
                     $oldFile = $about->partnerSection->image_url ?? null;
                 }
 
-                // hapus file lama jika ada
+                // Hapus file lama jika ada
                 if ($oldFile && Storage::disk('public')->exists($oldFile)) {
                     Storage::disk('public')->delete($oldFile);
                 }
 
-                // simpan file baru
+                // Simpan file baru
                 $path = $request->file($field)->store($storagePath, 'public');
 
-                // simpan ke database
+                // Assign ke model
                 if (in_array($field, ['banner', 'image1', 'image2', 'image3', 'image4'])) {
                     $about->$field = $path;
                 } elseif ($field === 'hero_image_file') {
                     $about->hero_image = $path;
-                } elseif ($field === 'partner_image_file') {
-                    if ($about->partnerSection) {
-                        $about->partnerSection->image_url = $path;
-                        $about->partnerSection->save();
-                    }
+                } elseif ($field === 'partner_image_file' && $about->partnerSection) {
+                    $about->partnerSection->image_url = $path;
                 }
             }
         }
 
         // --- UPDATE DATA UTAMA (ABOUT) ---
-        $about->update([
-            'hero_title'         => $request->hero_title,
-            'hero_subtitle'      => $request->hero_subtitle,
-            'tagline'            => $request->tagline,
-            'achievement_count'  => $request->achievement_count,
-            'achievement_label'  => $request->achievement_label,
-            'banner'             => $about->banner,
-            'image1'             => $about->image1,
-            'image2'             => $about->image2,
-            'image3'             => $about->image3,
-            'image4'             => $about->image4,
-            'hero_image'         => $about->hero_image,
-        ]);
+        $about->hero_title        = $request->hero_title;
+        $about->hero_subtitle     = $request->hero_subtitle;
+        $about->tagline           = $request->tagline;
+        $about->achievement_count = $request->achievement_count;
+        $about->achievement_label = $request->achievement_label;
+        $about->save();
 
         // --- UPDATE PARTNER SECTION ---
         if ($about->partnerSection) {
-            $about->partnerSection->update([
-                'title'       => $request->partner_title,
-                'description' => $request->partner_description,
-                'image_url'   => $about->partnerSection->image_url ?? $about->partnerSection->getOriginal('image_url'),
-            ]);
+            $about->partnerSection->title       = $request->partner_title;
+            $about->partnerSection->description = $request->partner_description;
+            $about->partnerSection->save();
         }
 
         // --- UPDATE PROFILE SECTION ---
         if ($about->profileSection) {
-            $about->profileSection->update([
-                'founding_year'   => $request->founding_year,
-                'mission'         => $request->mission,
-                'image_embed_url' => $request->image_embed_url,
-            ]);
+            $about->profileSection->founding_year   = $request->founding_year;
+            $about->profileSection->mission         = $request->mission;
+            $about->profileSection->image_embed_url = $request->image_embed_url;
+            $about->profileSection->save();
         }
 
         // --- UPDATE WHY US FEATURES ---

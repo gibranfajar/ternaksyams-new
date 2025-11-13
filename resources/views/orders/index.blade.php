@@ -17,6 +17,13 @@
                                     Requst Pickup
                                 </a>
                             </div>
+                            <div class="float-end">
+                                <a href="{{ route('orders.printLabel') }}" type="button"
+                                    class="btn btn-success btn-sm me-1">
+                                    <i class="bi bi-tags"></i>
+                                    Print Label
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
