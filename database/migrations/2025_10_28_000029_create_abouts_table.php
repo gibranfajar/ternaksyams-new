@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('abouts', function (Blueprint $table) {
             $table->id();
+            $table->string('banner');
+            $table->string('image1');
+            $table->string('image2');
+            $table->string('image3');
+            $table->string('image4');
             $table->string('hero_title');
             $table->string('hero_subtitle');
             $table->string('hero_image');

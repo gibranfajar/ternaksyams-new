@@ -319,6 +319,15 @@ class MasterAPIController extends Controller
             ], 400);
         }
 
+        // cek apakah kuota masih tersedia dari count voucher usage berdasarkan voucher_id
+        $countVoucherUsage = VoucherUsage::where('voucher_id', $voucher->id)->count();
+        if ($countVoucherUsage >= $voucher->quota) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Voucher quota is full',
+            ], 400);
+        }
+
         // 3. Cek target user
         if ($voucher->target !== 'all') {
 
@@ -342,7 +351,7 @@ class MasterAPIController extends Controller
         }
 
         // 5. Cek kuota
-        $limit = VoucherUsage::where('voucher_id', $voucher->id)->where('user_id', $request->user_id)->count();
+        $limit = VoucherUsage::where('voucher_id', $voucher->id)->where('user_id', $request->user_id)->where('session', $request->session)->count();
         if ($limit >= $voucher->limit) {
             return response()->json([
                 'success' => false,

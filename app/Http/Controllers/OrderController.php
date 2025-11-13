@@ -12,7 +12,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::orderBy('id', 'desc')->get();
+        $orders = Order::with('voucher')->orderBy('id', 'desc')->get();
         return view('orders.index', compact('orders'));
     }
 
@@ -83,11 +83,11 @@ class OrderController extends Controller
                 "shipping" => strtoupper($shippingOption->expedition),
                 "shipping_type" => strtoupper($shippingOption->service),
                 "payment_method" => "BANK TRANSFER",
-                "shipping_cost" => $shippingOption->cost,
+                "shipping_cost" => intval($shippingOption->cost),
                 "shipping_cashback" => 0,
                 "service_fee" => 0,
                 "additional_cost" => 0,
-                "grand_total" => $order->total,
+                "grand_total" => $order->items->sum('total') + $shippingOption->cost,
                 "cod_value" => 0,
                 "insurance_value" => 0,
                 "order_details" => $itemDetailsKomship,

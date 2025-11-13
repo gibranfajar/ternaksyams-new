@@ -26,6 +26,44 @@
                                     @method('PUT')
                                 @endif
 
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Banner</label>
+                                        <input type="file" name="banner" id="banner" class="form-control">
+                                        <img id="preview_banner"
+                                            src="{{ isset($about->banner) ? asset('storage/' . $about->banner) : '' }}"
+                                            alt="Banner Preview" style="max-height:150px; margin-top:10px;">
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <label class="form-label">Image 1</label>
+                                        <input type="file" name="image1" id="image1" class="form-control">
+                                        <img id="preview_image1"
+                                            src="{{ isset($about->image1) ? asset('storage/' . $about->image1) : '' }}"
+                                            alt="Image 1 Preview" style="max-height:150px; margin-top:10px;">
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <label class="form-label">Image 2</label>
+                                        <input type="file" name="image2" id="image2" class="form-control">
+                                        <img id="preview_image2"
+                                            src="{{ isset($about->image2) ? asset('storage/' . $about->image2) : '' }}"
+                                            alt="Image 2 Preview" style="max-height:150px; margin-top:10px;">
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <label class="form-label">Image 3</label>
+                                        <input type="file" name="image3" id="image3" class="form-control">
+                                        <img id="preview_image3"
+                                            src="{{ isset($about->image3) ? asset('storage/' . $about->image3) : '' }}"
+                                            alt="Image 3 Preview" style="max-height:150px; margin-top:10px;">
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <label class="form-label">Image 4</label>
+                                        <input type="file" name="image4" id="image4" class="form-control">
+                                        <img id="preview_image4"
+                                            src="{{ isset($about->image4) ? asset('storage/' . $about->image4) : '' }}"
+                                            alt="Image 4 Preview" style="max-height:150px; margin-top:10px;">
+                                    </div>
+                                </div>
+
                                 <!-- Hero Section -->
                                 <h5>Hero Section</h5>
                                 <div class="row mb-3">
@@ -83,7 +121,8 @@
                                             <div class="input-group mb-2 feature-item">
                                                 <input type="text" name="why_us_features[]" class="form-control"
                                                     value="{{ $feature->text }}">
-                                                <button type="button" class="btn btn-danger remove-feature">Remove</button>
+                                                <button type="button"
+                                                    class="btn btn-danger remove-feature">Remove</button>
                                             </div>
                                         @endforeach
                                     @else
@@ -175,6 +214,32 @@
             $(document).on('click', '.remove-feature', function() {
                 $(this).closest('.feature-item').remove();
             });
+        });
+
+        function previewImage(input, previewId) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#' + previewId).attr('src', e.target.result).show();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $('#banner').change(function() {
+            previewImage(this, 'preview_banner');
+        });
+        $('#image1').change(function() {
+            previewImage(this, 'preview_image1');
+        });
+        $('#image2').change(function() {
+            previewImage(this, 'preview_image2');
+        });
+        $('#image3').change(function() {
+            previewImage(this, 'preview_image3');
+        });
+        $('#image4').change(function() {
+            previewImage(this, 'preview_image4');
         });
     </script>
 @endpush

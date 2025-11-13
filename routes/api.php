@@ -92,3 +92,5 @@ Route::post('/transaction', [TransactionController::class, 'createTransaction'])
 Route::get('/transaction', [TransactionController::class, 'getTransactionUser'])->middleware('auth:sanctum');
 // Callback Midtrans
 Route::post('/midtrans/callback', [TransactionController::class, 'callback']);
+// Tracking Order
+Route::get('/track-order', [TransactionController::class, 'trackOrder']);

@@ -34,25 +34,37 @@
                         <table class="table table-sm table-striped table-bordered align-middle mb-0">
                             <thead class="table-success text-center">
                                 <tr>
-                                    <th style="width: 60%">Nama Produk</th>
-                                    <th style="width: 20%">Qty</th>
-                                    <th style="width: 20%">Harga</th>
+                                    <th style="width: 50%">Product</th>
+                                    <th style="width: 10%">Qty</th>
+                                    <th style="width: 15%">Price</th>
+                                    <th style="width: 15%">Discount</th>
+                                    <th style="width: 20%">Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($item->items as $orderItem)
                                     <tr>
-                                        <td>{{ $orderItem->name }}</td>
+                                        <td>{{ $orderItem->name }} - {{ $orderItem->variant }}</td>
                                         <td class="text-center">{{ $orderItem->qty }}</td>
                                         <td class="text-end">Rp {{ number_format($orderItem->price, 0, ',', '.') }}
+                                        </td>
+                                        <td class="text-center">
+                                            @if ($orderItem->discount_type === 'percent')
+                                                {{ $orderItem->discount }} %
+                                            @else
+                                                Rp {{ number_format($orderItem->discount, 0, ',', '.') }}
+                                            @endif
+                                        </td>
+                                        <td class="text-end">Rp {{ number_format($orderItem->total, 0, ',', '.') }}
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr class="fw-bold bg-light">
-                                    <td colspan="2" class="text-end">Total</td>
-                                    <td class="text-end text-success">Rp {{ number_format($item->total, 0, ',', '.') }}
+                                    <td colspan="4" class="text-end">Total</td>
+                                    <td class="text-end text-success">
+                                        Rp {{ number_format($item->items->sum('total'), 0, ',', '.') }}
                                     </td>
                                 </tr>
                             </tfoot>

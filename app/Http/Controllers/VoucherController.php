@@ -200,6 +200,11 @@ class VoucherController extends Controller
 
                 // Update voucher users
                 if ($request->has('selected_users') && is_array($request->selected_users)) {
+                    // Ambil salah satu thumbnail yang sudah ada untuk voucher ini
+                    $existingThumbnail = VoucherUser::where('voucher_id', $voucher->id)
+                        ->whereNotNull('thumbnail')
+                        ->value('thumbnail');
+
                     foreach ($request->selected_users as $userId) {
                         $voucherUser = VoucherUser::where('voucher_id', $voucher->id)
                             ->where('user_id', $userId)
@@ -207,13 +212,25 @@ class VoucherController extends Controller
 
                         $data = [
                             'voucher_id' => $voucher->id,
-                            'user_id' => $userId,
-                            'title' => $request->title,
-                            'content' => $request->content,
+                            'user_id'    => $userId,
+                            'title'      => $request->title,
+                            'content'    => $request->content,
                         ];
 
                         if ($request->hasFile('thumbnail')) {
+                            // hapus file lama jika ada
+                            if ($voucherUser && $voucherUser->thumbnail && Storage::disk('public')->exists($voucherUser->thumbnail)) {
+                                Storage::disk('public')->delete($voucherUser->thumbnail);
+                            }
                             $data['thumbnail'] = $request->file('thumbnail')->store('vouchers', 'public');
+                        } else {
+                            // jika voucherUser lama → pakai thumbnail lama
+                            // jika voucherUser baru → pakai salah satu thumbnail yang sudah ada
+                            $data['thumbnail'] = $voucherUser ? $voucherUser->thumbnail : $existingThumbnail;
+                        }
+
+                        if (!$data['thumbnail']) {
+                            throw new \Exception("Thumbnail harus ada untuk voucherUser ID: $userId");
                         }
 
                         if ($voucherUser) {

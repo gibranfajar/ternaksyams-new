@@ -16,7 +16,7 @@
                 <div class="modal-body">
                     <!-- Name & Social Media -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="add_name" class="form-label">Name</label>
                             <input type="text" class="form-control" id="add_name" name="name" required>
                             @error('name')
@@ -24,11 +24,19 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="add_social_media" class="form-label">Social Media</label>
                             <input type="text" class="form-control" id="add_social_media" name="social_media"
                                 required>
                             @error('social_media')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="add_city_age" class="form-label">City & Age</label>
+                            <input type="text" class="form-control" id="add_city_age" name="city_age" required>
+                            @error('city_age')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>

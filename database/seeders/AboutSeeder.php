@@ -14,6 +14,11 @@ class AboutSeeder extends Seeder
     {
         // 1️⃣ Buat record utama di tabel abouts
         $about = About::create([
+            'banner' => 'https://via.placeholder.com/1200x400?text=About+Banner',
+            'image1' => 'https://via.placeholder.com/400x300?text=Image+1',
+            'image2' => 'https://via.placeholder.com/400x300?text=Image+2',
+            'image3' => 'https://via.placeholder.com/400x300?text=Image+3',
+            'image4' => 'https://via.placeholder.com/400x300?text=Image+4',
             'hero_title' => 'Ternak Syams Etawa Goat Milk',
             'hero_subtitle' => 'Kekuatan disetiap tetes Etawa Goat Milk',
             'hero_image' => 'https://via.placeholder.com/300x400?text=Product+Stack',

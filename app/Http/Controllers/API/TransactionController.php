@@ -124,30 +124,71 @@ class TransactionController extends Controller
             $discountAmount = 0;
 
             if ($request->filled('voucher_code')) {
-                $voucher = Voucher::where('code', $request->voucher_code)->first();
+                $voucher = Voucher::where('code', $request->voucher_code)
+                    ->where('status', 'active')
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->first();
 
                 if (!$voucher) {
-                    return response()->json(['message' => 'Voucher not found'], 404);
+                    return response()->json(['message' => 'Voucher not found or inactive'], 404);
                 }
 
-                // hitung diskon
-                if ($voucher->type === 'percentage') {
-                    $discountAmount = ($voucher->value / 100) * $order->total;
-                } else {
-                    $discountAmount = $voucher->value;
+                // Cek kuota total voucher
+                $usedCount = VoucherUsage::where('voucher_id', $voucher->id)->count();
+                if ($usedCount >= $voucher->quota) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Voucher quota is full',
+                    ], 400);
                 }
 
-                $discountAmount = min($discountAmount, $order->total);
+                // Tentukan target pengurangan berdasarkan tipe voucher
+                $targetAmount = 0;
+                switch ($voucher->type) {
+                    case 'transaction':
+                    case 'product': // bisa dikembangkan lebih spesifik untuk product tertentu
+                        $targetAmount = max($order->total - $shippingOption->cost, 0);
+                        break;
+                    case 'shipping':
+                        $targetAmount = max($shippingOption->cost, 0);
+                        break;
+                }
 
-                // kurangi total order
-                $order->update([
-                    'total' => $order->total - $discountAmount
-                ]);
+                // Hitung diskon
+                if ($voucher->amount_type === 'percent') {
+                    $discountAmount = ($voucher->amount / 100) * $targetAmount;
 
-                // Tambahkan ke Midtrans
+                    // Batasi dengan max_value jika ada
+                    if ($voucher->max_value) {
+                        $discountAmount = min($discountAmount, $voucher->max_value);
+                    }
+                } else { // amount_type = value
+                    $discountAmount = min($voucher->amount, $targetAmount);
+                }
+
+                // Terapkan diskon ke order
+                switch ($voucher->type) {
+                    case 'transaction':
+                    case 'product':
+                        $orderSubtotal = max($order->total - $shippingOption->cost, 0);
+                        $orderSubtotal -= $discountAmount;
+                        $order->update([
+                            'total' => max($orderSubtotal + $shippingOption->cost, 0),
+                        ]);
+                        break;
+                    case 'shipping':
+                        $newShippingCost = max($shippingOption->cost - $discountAmount, 0);
+                        $order->update([
+                            'total' => max(($order->total - $shippingOption->cost) + $newShippingCost, 0),
+                        ]);
+                        break;
+                }
+
+                // Tambahkan diskon ke itemDetails untuk Midtrans
                 $itemDetails[] = [
                     'id'       => 'voucher',
-                    'price'    => -$discountAmount,
+                    'price'    => -(int) $discountAmount,
                     'quantity' => 1,
                     'name'     => 'Voucher Discount (' . $voucher->code . ')',
                 ];
@@ -159,8 +200,11 @@ class TransactionController extends Controller
                     'user_id'    => $cart->user_id,
                     'session'    => $cart->session,
                     'used_at'    => now(),
+                    'amount'     => $discountAmount,
                 ]);
             }
+
+
 
             // === 🔟 Buat parameter Midtrans ===
             $params = [
@@ -255,76 +299,6 @@ class TransactionController extends Controller
     /**
      * Callback Midtrans
      */
-    public function callbackOld(Request $request)
-    {
-        // set midtrans config
-        Config::$serverKey    = config('services.midtrans.server_key');
-        Config::$isProduction = config('services.midtrans.is_production');
-        Config::$isSanitized  = true;
-        Config::$is3ds        = true;
-
-        $notif = new Notification();
-
-        $transaction = $notif->transaction_status;
-        $type        = $notif->payment_type;
-        $orderId     = $notif->order_id;
-        $fraud       = $notif->fraud_status;
-
-        // cari order berdasarkan invoice
-        $order = Order::where('invoice', $orderId)->first();
-        $payment = Payment::where('order_id', $order->id)->first();
-
-        if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
-
-        // update payment log
-        $payment->update([
-            'status'  => $transaction,
-        ]);
-
-        // handle status
-        if ($transaction == 'capture') {
-            if ($type == 'credit_card') {
-                if ($fraud == 'challenge') {
-                    $order->update(['status' => 'challenge']);
-                } else {
-                    $order->update(['status' => 'paid']);
-                }
-            }
-        } elseif ($transaction == 'settlement') {
-            $order->update(['status' => 'processing']);
-
-            if ($type == 'bank_transfer') {
-                $vaNumbers = $notif->va_numbers ?? [];
-                if (!empty($vaNumbers)) {
-                    return strtoupper($vaNumbers[0]->bank); // contoh: BCA, MANDIRI
-                }
-                return 'BANK_TRANSFER';
-            } elseif ($type == 'cstore') {
-                return ucfirst($notif->store ?? 'CSTORE'); // Alfamart, Indomaret
-            } elseif ($type == 'qris') {
-                return 'QRIS';
-            } else {
-                return strtoupper($type); // fallback
-            }
-
-            $payment->update([
-                'paid_at' => Carbon::now()
-            ]);
-        } elseif ($transaction == 'pending') {
-            $order->update(['status' => 'pending']);
-        } elseif ($transaction == 'deny') {
-            $order->update(['status' => 'denied']);
-        } elseif ($transaction == 'expire') {
-            $order->update(['status' => 'expired']);
-        } elseif ($transaction == 'cancel') {
-            $order->update(['status' => 'cancelled']);
-        }
-
-        return response()->json(['message' => 'Callback processed']);
-    }
-
     public function callback(Request $request)
     {
         // Set Midtrans config
@@ -415,5 +389,47 @@ class TransactionController extends Controller
         } else {
             return strtoupper($type); // fallback
         }
+    }
+
+    /**
+     * history tracking order
+     */
+    public function trackOrder(Request $request)
+    {
+        $courier = $request->query('courier'); // contoh: ninja
+        $resi = $request->query('resi');       // contoh: KOMERKOM87623202511122109
+
+        if (!$courier || !$resi) {
+            return response()->json(['message' => 'Courier or resi is required'], 400);
+        }
+
+        // Optional: cek di DB dulu
+        $order = Order::whereHas('shipping', function ($q) use ($resi) {
+            $q->where('receipt_number', $resi);
+        })->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Request ke Komship API
+        $response = Http::withHeaders([
+            'x-api-key' => env('RAJAONGKIR_DELIVERY_API_KEY')
+        ])->get('https://api-sandbox.collaborator.komerce.id/order/api/v1/orders/history-airway-bill', [
+            'shipping' => $courier,
+            'airway_bill' => $resi,
+        ]);
+
+        if ($response->failed()) {
+            return response()->json([
+                'message' => 'Failed to fetch tracking info',
+                'error' => $response->json()
+            ], 500);
+        }
+
+        return response()->json([
+            'order' => $order,
+            'tracking' => $response->json()
+        ]);
     }
 }

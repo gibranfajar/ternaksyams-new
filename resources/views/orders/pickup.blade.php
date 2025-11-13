@@ -113,7 +113,7 @@
                         // tutup modal (ganti #selectOrderModal sesuai id modal-mu)
                         $("#selectOrder").modal("hide");
 
-                        Swal.fire("Warning", "Total weight exceeds 500 kg. Changed to mobil.", "warning");
+                        Swal.fire("Warning", "Total weight exceeds 500 grams. Changed to mobil.", "warning");
                     }
                     $("select[name='pickup_vehicle'] option[value='motor']").prop("disabled", true);
                 } else {

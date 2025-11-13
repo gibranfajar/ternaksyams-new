@@ -229,6 +229,10 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            $('input[name="code"]').on('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+
             // Toggle tombol select product
             $('input[name="type"]').on('change', function() {
                 if ($(this).val() === 'product') {

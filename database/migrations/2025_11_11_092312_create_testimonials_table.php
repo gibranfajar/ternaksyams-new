@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('social_media');
+            $table->string('city_age');
             $table->text('message');
             $table->string('image');
             $table->enum('target', ['user', 'reseller', 'affiliate'])->nullable();

@@ -27,29 +27,51 @@ class AboutController extends Controller
 
         // --- VALIDASI DASAR ---
         $request->validate([
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image1' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image2' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image3' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image4' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'hero_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'partner_image_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // --- HERO IMAGE ---
-        if ($request->hasFile('hero_image_file')) {
-            // hapus gambar lama jika ada
-            if ($about->hero_image && Storage::disk('public')->exists($about->hero_image)) {
-                Storage::disk('public')->delete($about->hero_image);
+        // --- FILE UPLOAD ---
+        $fileFields = ['banner', 'image1', 'image2', 'image3', 'image4', 'hero_image_file', 'partner_image_file'];
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                $oldFile = null;
+                $storagePath = 'about_images';
+
+                // tentukan file lama
+                if (in_array($field, ['banner', 'image1', 'image2', 'image3', 'image4'])) {
+                    $oldFile = $about->$field;
+                } elseif ($field === 'hero_image_file') {
+                    $oldFile = $about->hero_image;
+                } elseif ($field === 'partner_image_file') {
+                    $oldFile = $about->partnerSection->image_url ?? null;
+                }
+
+                // hapus file lama jika ada
+                if ($oldFile && Storage::disk('public')->exists($oldFile)) {
+                    Storage::disk('public')->delete($oldFile);
+                }
+
+                // simpan file baru
+                $path = $request->file($field)->store($storagePath, 'public');
+
+                // simpan ke database
+                if (in_array($field, ['banner', 'image1', 'image2', 'image3', 'image4'])) {
+                    $about->$field = $path;
+                } elseif ($field === 'hero_image_file') {
+                    $about->hero_image = $path;
+                } elseif ($field === 'partner_image_file') {
+                    if ($about->partnerSection) {
+                        $about->partnerSection->image_url = $path;
+                        $about->partnerSection->save();
+                    }
+                }
             }
-
-            // simpan gambar baru
-            $about->hero_image = $request->file('hero_image_file')->store('about_images', 'public');
-        }
-
-        // --- PARTNER IMAGE ---
-        $partner = $about->partnerSection;
-        if ($partner && $request->hasFile('partner_image_file')) {
-            if ($partner->image_url && Storage::disk('public')->exists($partner->image_url)) {
-                Storage::disk('public')->delete($partner->image_url);
-            }
-
-            $partner->image_url = $request->file('partner_image_file')->store('about_images', 'public');
         }
 
         // --- UPDATE DATA UTAMA (ABOUT) ---
@@ -59,22 +81,26 @@ class AboutController extends Controller
             'tagline'            => $request->tagline,
             'achievement_count'  => $request->achievement_count,
             'achievement_label'  => $request->achievement_label,
-            'hero_image'         => $about->hero_image, // pastikan ter-update
+            'banner'             => $about->banner,
+            'image1'             => $about->image1,
+            'image2'             => $about->image2,
+            'image3'             => $about->image3,
+            'image4'             => $about->image4,
+            'hero_image'         => $about->hero_image,
         ]);
 
         // --- UPDATE PARTNER SECTION ---
-        if ($partner) {
-            $partner->update([
+        if ($about->partnerSection) {
+            $about->partnerSection->update([
                 'title'       => $request->partner_title,
                 'description' => $request->partner_description,
-                'image_url'   => $partner->image_url ?? $partner->getOriginal('image_url'),
+                'image_url'   => $about->partnerSection->image_url ?? $about->partnerSection->getOriginal('image_url'),
             ]);
         }
 
         // --- UPDATE PROFILE SECTION ---
-        $profile = $about->profileSection;
-        if ($profile) {
-            $profile->update([
+        if ($about->profileSection) {
+            $about->profileSection->update([
                 'founding_year'   => $request->founding_year,
                 'mission'         => $request->mission,
                 'image_embed_url' => $request->image_embed_url,
@@ -83,7 +109,6 @@ class AboutController extends Controller
 
         // --- UPDATE WHY US FEATURES ---
         $about->whyUsFeatures()->delete();
-
         if ($request->filled('why_us_features')) {
             foreach ($request->why_us_features as $feature) {
                 if (trim($feature) !== '') {

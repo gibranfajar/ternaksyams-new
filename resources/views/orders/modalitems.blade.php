@@ -51,32 +51,78 @@
                     <div class="col-md-4">
                         <div class="row g-2">
                             <!-- Order Summary -->
+                            @php
+                                $subtotal = $item->items->sum('price');
+                                $shipping = $item->shipping->shippingOption->cost;
+                                $discount = 0;
+
+                                if ($item->voucherUsage && $item->voucher) {
+                                    $voucher = $item->voucher;
+                                    $voucherUsage = $item->voucherUsage;
+
+                                    $targetAmount = 0;
+                                    switch ($voucher->type) {
+                                        case 'transaction':
+                                        case 'product':
+                                            $targetAmount = $subtotal; // hanya subtotal barang
+                                            break;
+                                        case 'shipping':
+                                            $targetAmount = $shipping; // ongkir
+                                            break;
+                                    }
+
+                                    if ($voucher->amount_type === 'percent') {
+                                        $discount = ($voucher->amount / 100) * $targetAmount;
+                                        if ($voucher->max_value) {
+                                            $discount = min($discount, $voucher->max_value);
+                                        }
+                                    } else {
+                                        // value
+                                        $discount = min($voucher->amount, $targetAmount);
+                                    }
+                                }
+
+                                $total = $subtotal + $shipping - $discount;
+                            @endphp
+
                             <div class="card bg-light">
                                 <div class="card-body">
                                     <h6 class="fw-bold">Order Summary</h6>
                                     <hr>
+
                                     <div class="d-flex justify-content-between">
                                         <span>Subtotal</span>
-                                        <span>Rp {{ number_format($item->items->sum('price')) }}</span>
+                                        <span>Rp {{ number_format($subtotal) }}</span>
                                     </div>
-                                    @if ($item->voucher)
-                                        <div class="d-flex justify-content-between text-success">
-                                            <span>Voucher Discount</span>
-                                            <span>-Rp {{ number_format($item->voucher_discount ?? 0) }}</span>
-                                        </div>
-                                    @endif
+
                                     <div class="d-flex justify-content-between">
                                         <span>Shipping</span>
-                                        <span>Rp {{ number_format($item->shipping->shippingOption->cost) }}</span>
+                                        <span>Rp {{ number_format($shipping) }}</span>
                                     </div>
+
+                                    @if ($item->voucher && $discount > 0)
+                                        <div class="d-flex justify-content-between align-items-center text-success">
+                                            <div>
+                                                <span>Voucher Discount</span>
+                                                <small class="d-block text-success">
+                                                    ({{ ucfirst($item->voucher->type) }}
+                                                    {{ $item->voucher->amount_type === 'percent' ? $item->voucher->amount . '%' : '' }})
+                                                </small>
+                                            </div>
+                                            <span>-Rp {{ number_format($discount) }}</span>
+                                        </div>
+                                    @endif
+
                                     <hr>
+
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span>Total</span>
-                                        <span>Rp
-                                            {{ number_format($item->items->sum('price') + $item->shipping->shippingOption->cost) }}</span>
+                                        <span>Rp {{ number_format($total) }}</span>
                                     </div>
                                 </div>
                             </div>
+
+
 
                             <!-- Shipping Information -->
 
@@ -128,7 +174,9 @@
                                     <h6 class="fw-bold">Voucher Applied</h6>
                                     <hr>
                                     <div>Code: {{ $item->voucher->code }}</div>
-                                    <div>Discount: Rp {{ number_format($item->voucher->amount) }}</div>
+                                    <div>Discount: ({{ ucfirst($item->voucher->type) }}
+                                        {{ $item->voucher->amount_type === 'percent' ? $item->voucher->amount . '%' : number_format($item->voucher->amount) }})
+                                    </div>
                                     <div>Type: {{ ucfirst($item->voucher->type) }}</div>
                                 </div>
                             </div>

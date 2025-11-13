@@ -96,7 +96,7 @@
                                     <div class="col-md-2">
                                         <label class="form-label">Real Price</label>
                                         <input type="text" name="variants[0][sizes][0][real_price]"
-                                            class="form-control" readonly>
+                                            class="form-control">
                                     </div>
                                     <div class="col-md-1">
                                         <button type="button" class="btn btn-danger btn-sm w-100 btn-remove-size">
@@ -280,13 +280,27 @@
         });
 
         // Auto Calculate Real Price
-        $(document).on("input", "input[name$='[price]'], input[name$='[discount]']", function() {
-            let row = $(this).closest(".size-item");
-            let price = parseFloat(row.find("input[name$='[price]']").val()) || 0;
-            let discount = parseFloat(row.find("input[name$='[discount]']").val()) || 0;
-            let realPrice = price - (price * discount / 100);
-            row.find("input[name$='[real_price]']").val(realPrice.toFixed(0));
-        });
+        $(document).on("input",
+            "input[name$='[price]'], input[name$='[discount]'], input[name$='[real_price]']",
+            function() {
+                let row = $(this).closest(".size-item"); // pastikan input berada di wrapper .size-item
+                let price = parseFloat(row.find("input[name$='[price]']").val()) || 0;
+                let discount = parseFloat(row.find("input[name$='[discount]']").val()) || 0;
+                let realPrice = parseFloat(row.find("input[name$='[real_price]']").val()) || 0;
+
+                if ($(this).attr("name").endsWith("[real_price]")) {
+                    // Jika user input real_price → hitung discount
+                    if (price > 0) {
+                        discount = ((price - realPrice) / price) * 100;
+                        row.find("input[name$='[discount]']").val(discount.toFixed(2));
+                    }
+                } else {
+                    // Jika user input price atau discount → hitung real_price
+                    realPrice = price - (price * discount / 100);
+                    row.find("input[name$='[real_price]']").val(realPrice.toFixed(0));
+                }
+            });
+
 
         reindexAll();
     });

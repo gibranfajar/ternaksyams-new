@@ -16,7 +16,7 @@
                 <div class="modal-body">
                     <!-- Name & Social Media -->
                     <div class="row mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="name{{ $testimonial->id }}" class="form-label">Name</label>
                             <input type="text" class="form-control" id="name{{ $testimonial->id }}" name="name"
                                 value="{{ $testimonial->name }}" required>
@@ -25,11 +25,20 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="social_media{{ $testimonial->id }}" class="form-label">Social Media</label>
                             <input type="text" class="form-control" id="social_media{{ $testimonial->id }}"
                                 name="social_media" value="{{ $testimonial->social_media }}" required>
                             @error('social_media')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="city_age{{ $testimonial->id }}" class="form-label">City & Age</label>
+                            <input type="text" class="form-control" id="city_age{{ $testimonial->id }}"
+                                name="city_age" value="{{ $testimonial->city_age }}" required>
+                            @error('city_age')
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>

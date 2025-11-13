@@ -43,6 +43,7 @@ class TestimonialController extends Controller
 
             $request->validate([
                 'name' => 'required',
+                'city_age' => 'required',
                 'social_media' => 'required',
                 'message' => 'required',
                 'target' => 'required|in:user,reseller,affiliate',
@@ -55,6 +56,7 @@ class TestimonialController extends Controller
 
             Testimonial::create([
                 'name' => $request->name,
+                'city_age' => $request->city_age,
                 'social_media' => $request->social_media,
                 'message' => $request->message,
                 'target' => $request->target,
@@ -93,6 +95,7 @@ class TestimonialController extends Controller
             $request->validate([
                 'name' => 'required',
                 'social_media' => 'required',
+                'city_age' => 'required',
                 'message' => 'required',
                 'target' => 'required|in:user,reseller,affiliate',
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -105,6 +108,7 @@ class TestimonialController extends Controller
             }
 
             $testimonial->name = $request->name;
+            $testimonial->city_age = $request->city_age;
             $testimonial->social_media = $request->social_media;
             $testimonial->message = $request->message;
             $testimonial->target = $request->target;

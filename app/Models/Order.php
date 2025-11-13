@@ -30,9 +30,21 @@ class Order extends Model
         return $this->hasOne(Shipping::class);
     }
 
+    public function voucherUsage()
+    {
+        return $this->hasOne(VoucherUsage::class); // atau hasMany kalau bisa lebih dari 1
+    }
+
     public function voucher()
     {
-        return $this->belongsTo(Voucher::class);
+        return $this->hasOneThrough(
+            Voucher::class,
+            VoucherUsage::class,
+            'order_id',  // FK di voucher_usages
+            'id',        // PK di vouchers
+            'id',        // PK di orders
+            'voucher_id' // FK di voucher_usages
+        );
     }
 
     public function payment()
