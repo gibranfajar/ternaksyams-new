@@ -34,7 +34,10 @@ use App\Models\VoucherUsage;
 use App\Models\VoucherUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MasterAPIController extends Controller
 {
@@ -75,9 +78,9 @@ class MasterAPIController extends Controller
             'whatsapp' => 'required',
             'email' => 'required',
             'address' => 'required',
-            'province' => 'required',
-            'city' => 'required',
-            'district' => 'required',
+            'province_id' => 'required',
+            'city_id' => 'required',
+            'district_id' => 'required',
             'postal_code' => 'required',
             'bank' => 'required',
             'account_name' => 'required',
@@ -91,6 +94,122 @@ class MasterAPIController extends Controller
             return response()->json(['message' => 'Failed to create reseller'], 500);
         }
     }
+
+    /**
+     * Get All Resellers
+     */
+    public function getResellers()
+    {
+        $resellers = Reseller::all();
+
+        /*
+    |--------------------------------------------------------------------------
+    | GET PROVINCES (CACHE 1 DAY)
+    |--------------------------------------------------------------------------
+    */
+        try {
+            $provinces = Cache::remember('rajaongkir_provinces', 86400, function () {
+                return Http::withHeaders([
+                    'key' => env('RAJAONGKIR_API_KEY')
+                ])->timeout(10)
+                    ->get('https://rajaongkir.komerce.id/api/v1/destination/province')
+                    ->json('data');
+            });
+        } catch (\Exception $e) {
+            Log::error('Provincia API error: ' . $e->getMessage());
+            $provinces = [];
+        }
+
+        $provinceMap = collect($provinces)->pluck('name', 'id');
+
+        /*
+    |--------------------------------------------------------------------------
+    | GET CITIES PER PROVINCE (CACHE)
+    |--------------------------------------------------------------------------
+    */
+        $cityMap = [];
+        $groupedByProvince = $resellers->groupBy('province_id');
+
+        foreach ($groupedByProvince as $provinceId => $items) {
+            try {
+                $cities = Cache::remember("rajaongkir_cities_$provinceId", 86400, function () use ($provinceId) {
+                    return Http::withHeaders([
+                        'key' => env('RAJAONGKIR_API_KEY')
+                    ])->timeout(10)
+                        ->get("https://rajaongkir.komerce.id/api/v1/destination/city/$provinceId")
+                        ->json('data');
+                });
+
+                foreach ($cities as $city) {
+                    $cityMap[$city['id']] = $city['name'];
+                }
+            } catch (\Exception $e) {
+                Log::error("City API error for province $provinceId: " . $e->getMessage());
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | GET DISTRICTS PER CITY (CACHE)
+    |--------------------------------------------------------------------------
+    */
+        $districtMap = [];
+        $groupedByCity = $resellers->groupBy('city_id');
+
+        foreach ($groupedByCity as $cityId => $items) {
+            try {
+                $districts = Cache::remember("rajaongkir_districts_$cityId", 86400, function () use ($cityId) {
+                    return Http::withHeaders([
+                        'key' => env('RAJAONGKIR_API_KEY')
+                    ])->timeout(10)
+                        ->get("https://rajaongkir.komerce.id/api/v1/destination/district/$cityId")
+                        ->json('data');
+                });
+
+                foreach ($districts as $district) {
+                    $districtMap[$district['id']] = $district['name'];
+                }
+            } catch (\Exception $e) {
+                Log::error("District API error for city $cityId: " . $e->getMessage());
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | INJECT FINAL RESPONSE
+    |--------------------------------------------------------------------------
+    */
+        $resellers = $resellers->map(function ($item) use ($provinceMap, $cityMap, $districtMap) {
+
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'email' => $item->email,
+                'whatsapp' => $item->whatsapp,
+                'address' => $item->address,
+
+                'province_id' => $item->province_id,
+                'province_name' => $provinceMap[$item->province_id] ?? 'UNKNOWN',
+
+                'city_id' => $item->city_id,
+                'city_name' => $cityMap[$item->city_id] ?? 'UNKNOWN',
+
+                'district_id' => $item->district_id,
+                'district_name' => $districtMap[$item->district_id] ?? 'UNKNOWN',
+
+                'postal_code' => $item->postal_code,
+                'bank' => $item->bank,
+                'account_number' => $item->account_number,
+                'account_name' => $item->account_name,
+                'created_at' => $item->created_at,
+            ];
+        });
+
+        return response()->json([
+            'data' => $resellers
+        ], 200);
+    }
+
 
     /*
      * Create Affiliate Account
@@ -116,6 +235,16 @@ class MasterAPIController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Failed to create affiliate'], 500);
         }
+    }
+
+
+    /**
+     * Get All Affiliates
+     */
+    public function getAffiliates()
+    {
+        $affiliates = Affiliator::all();
+        return response()->json(['data' => $affiliates], 200);
     }
 
 

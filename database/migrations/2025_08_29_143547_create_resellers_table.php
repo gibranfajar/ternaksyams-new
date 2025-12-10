@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('whatsapp')->unique();
             $table->string('email')->unique();
             $table->text('address');
-            $table->string('province');
-            $table->string('city');
-            $table->string('district');
+            $table->integer('province_id');
+            $table->integer('city_id');
+            $table->integer('district_id');
             $table->string('postal_code');
             $table->string('bank');
             $table->string('account_number')->unique();

@@ -123,7 +123,7 @@
             const form = $(this).closest('form');
 
             Swal.fire({
-                title: 'Yakin ingin menghapus slider ini?',
+                title: 'Yakin ingin menghapus data ini?',
                 text: "Data yang sudah dihapus tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,

@@ -9,12 +9,12 @@
                     <div class="row align-items-center">
                         <div class="col-md-12">
                             <div class="page-header-title">
-                                <h3>Promotions</h3>
+                                <h3>Pricelist Resellers</h3>
                             </div>
                             <div class="float-end">
                                 <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#addPromotionModal">
-                                    Add Promotion
+                                    data-bs-target="#addModal">
+                                    Add Pricelist Reseller
                                 </button>
                             </div>
                         </div>
@@ -32,47 +32,26 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 5%" class="text-center">No</th>
-                                        <th>Thumbnail</th>
-                                        <th>Name</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Status</th>
-                                        <th style="width: 10%" class="text-center">Popup</th>
+                                        <th>Image</th>
+                                        <th style="width: 10%" class="text-center">Active</th>
                                         <th style="width: 10%" class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($promotions as $item)
+                                    @foreach ($pricelistResellers as $item)
                                         <tr class="align-middle">
 
                                             <td class="text-center fw-semibold">{{ $loop->iteration }}</td>
 
                                             <td class="text-center">
-                                                <img src="{{ asset('storage/' . $item->thumbnail) }}" alt="thumbnail"
+                                                <img src="{{ asset('storage/' . $item->path) }}" alt="thumbnail"
                                                     class="img-thumbnail" style="width:60px;height:auto">
                                             </td>
 
-                                            <td class="fw-semibold">{{ $item->name }}</td>
-
                                             <td class="text-center">
-                                                {{ Carbon\Carbon::parse($item->start_date)->format('d M Y') }}
-                                            </td>
-
-                                            <td class="text-center">
-                                                {{ Carbon\Carbon::parse($item->end_date)->format('d M Y') }}
-                                            </td>
-
-                                            <td class="text-center">
-                                                <span
-                                                    class="badge rounded-pill px-3 {{ $item->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
-                                                    {{ ucfirst($item->status) }}
-                                                </span>
-                                            </td>
-
-                                            <!-- POPUP SWITCH -->
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center align-items-center">
-                                                    <form action="{{ route('promotions.togglePopup', $item->id) }}"
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <form
+                                                        action="{{ route('pricelist-resellers.toggleActive', $item->id) }}"
                                                         method="POST" class="m-0 p-0">
                                                         @csrf
                                                         @method('PATCH')
@@ -80,28 +59,34 @@
                                                         <div class="form-check form-switch m-0">
                                                             <input class="form-check-input cursor-pointer" type="checkbox"
                                                                 onchange="this.form.submit()"
-                                                                {{ $item->is_popup ? 'checked' : '' }} title="Toggle Popup">
+                                                                {{ $item->active ? 'checked' : '' }} title="Toggle Popup">
                                                         </div>
                                                     </form>
                                                 </div>
                                             </td>
-
                                             <!-- ACTION -->
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center align-items-center gap-2">
                                                     <button type="button" class="btn btn-warning btn-sm"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#editPromotionModal{{ $item->id }}">
+                                                        data-bs-target="#editModal{{ $item->id }}">
                                                         <i class="ti ti-edit"></i>
                                                     </button>
+                                                    <form action="{{ route('pricelist-resellers.destroy', $item->id) }}"
+                                                        method="POST" class="m-0 p-0 btn-delete">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="ti ti-trash"></i>
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             </td>
 
                                         </tr>
-                                        @include('promotions.modaledit')
+                                        @include('pricelist-resellers.modaledit')
                                     @endforeach
                                 </tbody>
-
                             </table>
                         </div>
                     </div>
@@ -111,5 +96,5 @@
     </div>
 
     <!-- Add Promotion Modal -->
-    @include('promotions.modalcreate')
+    @include('pricelist-resellers.modalcreate')
 @endsection

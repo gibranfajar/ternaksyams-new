@@ -13,7 +13,7 @@ class PromotionController extends Controller
      */
     public function index()
     {
-        $promotions = Promotion::all();
+        $promotions = Promotion::orderBy('id', 'desc')->get();
         return view('promotions.index', compact('promotions'));
     }
 
@@ -121,5 +121,28 @@ class PromotionController extends Controller
     public function destroy(Promotion $promotion)
     {
         //
+    }
+
+    /**
+     * Toggle the is_popup status of the specified promotion.
+     */
+    public function togglePopup($id)
+    {
+        $promotion = Promotion::findOrFail($id);
+
+        // jika lagi ON → matikan
+        if ($promotion->is_popup) {
+            $promotion->is_popup = false;
+        } else {
+            // kalau mau hanya 1 popup aktif:
+            Promotion::where('is_popup', true)->update(['is_popup' => false]);
+
+            // aktifkan yang diklik
+            $promotion->is_popup = true;
+        }
+
+        $promotion->save();
+
+        return back()->with('success', 'Popup status updated.');
     }
 }

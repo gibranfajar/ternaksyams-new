@@ -73,8 +73,10 @@ Route::get('/promotions', [MasterAPIController::class, 'promotions']);
 
 // Reseller Register
 Route::post('/reseller/register', [MasterAPIController::class, 'createReseller']);
+Route::get('/resellers', [MasterAPIController::class, 'getResellers']);
 // Affiliate Register
 Route::post('/affiliate/register', [MasterAPIController::class, 'createAffiliate']);
+Route::get('/affiliates', [MasterAPIController::class, 'getAffiliates']);
 
 
 // Rajaongkir

@@ -23,8 +23,8 @@
 
                     <dt class="col-sm-4">Location</dt>
                     <dd class="col-sm-8">
-                        {{ $reseller->district }}, {{ $reseller->city }},
-                        {{ $reseller->province }} - {{ $reseller->postal_code }}
+                        {{ $reseller->district_name }}, {{ $reseller->city_name }},
+                        {{ $reseller->province_name }} - {{ $reseller->postal_code }}
                     </dd>
 
                     <hr class="my-2">

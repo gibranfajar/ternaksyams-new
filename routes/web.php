@@ -13,8 +13,10 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FlashSaleController;
 use App\Http\Controllers\FlavourController;
 use App\Http\Controllers\FooterController;
+use App\Http\Controllers\HardsellingController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PricelistResellerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SizeController;
@@ -48,7 +50,11 @@ Route::patch('benefits/{benefit}/toggle-status', [BenefitController::class, 'tog
 
 Route::get('partners', [PartnerController::class, 'index'])->name('partners.index');
 
+Route::resource('pricelist-resellers', PricelistResellerController::class);
+Route::patch('pricelist-resellers/{pricelistReseller}/toggle-active', [PricelistResellerController::class, 'toggleActive'])->name('pricelist-resellers.toggleActive');
+
 Route::resource('promotions', PromotionController::class);
+Route::patch('/promotions/{id}/toggle-popup', [PromotionController::class, 'togglePopup'])->name('promotions.togglePopup');
 
 Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
 Route::get('orders/pickup', [OrderController::class, 'pickup'])->name('orders.pickup');
@@ -73,5 +79,12 @@ Route::patch('testimonials/{testimonial}/toggle-status', [TestimonialController:
 Route::resource('category-faqs', CategoryFaqController::class);
 Route::resource('faqs', FaqController::class);
 Route::patch('faqs/{faq}/toggle-status', [FaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
+
+
+/**
+ * HARDSELLING
+ */
+Route::resource('hardsellings', HardsellingController::class);
+
 
 require __DIR__ . '/auth.php';

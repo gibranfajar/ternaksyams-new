@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('start_date');
             $table->timestamp('end_date');
             $table->enum('status', ['active', 'inactive']);
+            $table->boolean('is_popup')->default(false);
             $table->timestamps();
         });
     }

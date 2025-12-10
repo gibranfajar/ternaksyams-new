@@ -117,104 +117,41 @@
                                 <table class="table table-hover table-borderless mb-0">
                                     <thead>
                                         <tr>
-                                            <th>TRACKING NO.</th>
-                                            <th>PRODUCT NAME</th>
-                                            <th>TOTAL ORDER</th>
+                                            <th>INVOICE</th>
+                                            <th>NAME</th>
+                                            <th>DATE</th>
                                             <th>STATUS</th>
+                                            <th>STATUS PAYMENT</th>
                                             <th class="text-end">TOTAL AMOUNT</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Camera Lens</td>
-                                            <td>40</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                            </td>
-                                            <td class="text-end">$40,570</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Laptop</td>
-                                            <td>300</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Mobile</td>
-                                            <td>355</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Camera Lens</td>
-                                            <td>40</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                            </td>
-                                            <td class="text-end">$40,570</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Laptop</td>
-                                            <td>300</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Mobile</td>
-                                            <td>355</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Camera Lens</td>
-                                            <td>40</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-danger f-10 m-r-5"></i>Rejected</span>
-                                            </td>
-                                            <td class="text-end">$40,570</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Laptop</td>
-                                            <td>300</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-warning f-10 m-r-5"></i>Pending</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Mobile</td>
-                                            <td>355</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
-                                        <tr>
-                                            <td><a href="#" class="text-muted">84564564</a></td>
-                                            <td>Mobile</td>
-                                            <td>355</td>
-                                            <td><span class="d-flex align-items-center gap-2"><i
-                                                        class="fas fa-circle text-success f-10 m-r-5"></i>Approved</span>
-                                            </td>
-                                            <td class="text-end">$180,139</td>
-                                        </tr>
+                                        @foreach ($orders as $item)
+                                            <tr>
+                                                <td><a href="{{ route('orders.index') }}"
+                                                        class="text-muted">{{ $item->invoice }}</a></td>
+                                                <td>{{ $item->shipping->shippingInfo->name }}</td>
+                                                <td>{{ Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
+                                                <td>
+                                                    <span class="d-flex align-items-center gap-2">
+                                                        <i
+                                                            class="fas fa-circle {{ $item->status == 'pending' ? 'text-warning' : 'text-success' }} f-10 m-r-5"></i>
+                                                        {{ ucfirst($item->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span
+                                                        class="badge 
+                                                            @if ($item->payment->status == 'pending') bg-warning 
+                                                            @elseif($item->payment->status == 'settlement') bg-success 
+                                                            @elseif($item->payment->status == 'failed') bg-danger 
+                                                            @else bg-secondary @endif">
+                                                        {{ ucfirst($item->payment->status) }}
+                                                    </span>
+                                                </td>
+                                                <td class="text-end">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>

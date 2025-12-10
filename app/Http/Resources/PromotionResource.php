@@ -21,6 +21,7 @@ class PromotionResource extends JsonResource
             'description' => $this->description,
             'thumbnail' => asset('storage/' . $this->thumbnail),
             'status' => $this->status,
+            'is_popup' => $this->is_popup,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date
         ];

@@ -35,6 +35,20 @@
                     </a>
                 </li>
 
+                <li class="pc-item pc-hasmenu">
+                    <a class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-puzzle"></i></span>
+                        <span class="pc-mtext">Hardsellings</span>
+                        <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    </a>
+                    <ul class="pc-submenu">
+                        <li class="pc-item"><a class="pc-link" href="{{ route('hardsellings.index') }}">Content</a>
+                        </li>
+                        <li class="pc-item"><a class="pc-link" href="#">Cta</a></li>
+                        <li class="pc-item"><a class="pc-link" href="#">Footer</a></li>
+                    </ul>
+                </li>
+
                 <li class="pc-item">
                     <a href="{{ route('testimonials.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-info-circle"></i></span>
@@ -95,6 +109,13 @@
                     <a href="{{ route('benefits.index') }}" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-gift"></i></span>
                         <span class="pc-mtext">Benefits</span>
+                    </a>
+                </li>
+
+                <li class="pc-item">
+                    <a href="{{ route('pricelist-resellers.index') }}" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-report-money"></i></span>
+                        <span class="pc-mtext">Pricelist Resellers</span>
                     </a>
                 </li>
 
