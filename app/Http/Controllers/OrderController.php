@@ -174,11 +174,6 @@ class OrderController extends Controller
                 'order_number' => $result['order_no'],
             ]);
 
-            // ✅ Update order status
-            $order->update([
-                'status' => 'packaging',
-            ]);
-
             return redirect()->route('orders.index')->with('success', 'Order berhasil dikirim ke Komship.');
         } catch (\Throwable $e) {
             Log::error('Komship Request Error', [

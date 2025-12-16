@@ -15,8 +15,19 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@ternaksyams.id',
+            'password' => bcrypt('qwerty12345'),
+            'role' => 'admin',
+        ]);
+
         $this->call([
             AboutSeeder::class,
+            BrandSeeder::class,
+            CategoryArticleSeeder::class,
+            ArticleSeeder::class,
+            ProductSeeder::class,
         ]);
     }
 }

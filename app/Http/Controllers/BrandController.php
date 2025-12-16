@@ -46,6 +46,8 @@ class BrandController extends Controller
                 'slug' => Str::slug($request->name),
                 'description' => $request->description,
                 'image' => $brandImage,
+                'main_color' => $request->main_color,
+                'accent_color' => $request->accent_color
             ]);
 
             // === 3️⃣ Simpan ke brand_sizes ===
@@ -187,6 +189,8 @@ class BrandController extends Controller
                 'slug' => Str::slug($request->name),
                 'description' => $request->description,
                 'image' => $brandImage,
+                'main_color' => $request->main_color,
+                'accent_color' => $request->accent_color
             ]);
 
             // === 2️⃣ Sizes ===

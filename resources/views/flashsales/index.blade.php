@@ -41,8 +41,8 @@
                                 <tbody>
                                     @php
                                         $statusColors = [
-                                            'active' => 'bg-success',
-                                            'inactive' => 'bg-danger',
+                                            'ongoing' => 'bg-success',
+                                            'done' => 'bg-primary',
                                             'draft' => 'bg-secondary',
                                         ];
                                     @endphp

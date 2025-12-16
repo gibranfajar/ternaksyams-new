@@ -91,7 +91,8 @@ class TransactionController extends Controller
                     'price'          => $item->price,
                     'qty'            => $item->qty,
                     'total'          => $item->price * $item->qty,
-                    'is_sale'        => $item->is_sale
+                    'is_sale'        => $item->is_sale,
+                    'is_flashsale'   => $item->is_flashsale,
                 ]);
             }
 

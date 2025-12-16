@@ -31,36 +31,36 @@
                                         <label class="form-label">Banner</label>
                                         <input type="file" name="banner" id="banner" class="form-control">
                                         <img id="preview_banner"
-                                            src="{{ isset($about->banner) ? asset('storage/' . $about->banner) : '' }}"
-                                            alt="Banner Preview" style="max-height:150px; margin-top:10px;">
+                                            src="{{ isset($about?->banner) ? asset('storage/' . $about->banner) : '' }}"
+                                            alt="" style="max-height:150px; margin-top:10px;">
                                     </div>
                                     <div class="col-md-6 mt-2">
                                         <label class="form-label">Image 1</label>
                                         <input type="file" name="image1" id="image1" class="form-control">
                                         <img id="preview_image1"
-                                            src="{{ isset($about->image1) ? asset('storage/' . $about->image1) : '' }}"
-                                            alt="Image 1 Preview" style="max-height:150px; margin-top:10px;">
+                                            src="{{ isset($about?->image1) ? asset('storage/' . $about->image1) : '' }}"
+                                            alt="" style="max-height:150px; margin-top:10px;">
                                     </div>
                                     <div class="col-md-6 mt-2">
                                         <label class="form-label">Image 2</label>
                                         <input type="file" name="image2" id="image2" class="form-control">
                                         <img id="preview_image2"
-                                            src="{{ isset($about->image2) ? asset('storage/' . $about->image2) : '' }}"
-                                            alt="Image 2 Preview" style="max-height:150px; margin-top:10px;">
+                                            src="{{ isset($about?->image2) ? asset('storage/' . $about->image2) : '' }}"
+                                            alt="" style="max-height:150px; margin-top:10px;">
                                     </div>
                                     <div class="col-md-6 mt-2">
                                         <label class="form-label">Image 3</label>
                                         <input type="file" name="image3" id="image3" class="form-control">
                                         <img id="preview_image3"
-                                            src="{{ isset($about->image3) ? asset('storage/' . $about->image3) : '' }}"
-                                            alt="Image 3 Preview" style="max-height:150px; margin-top:10px;">
+                                            src="{{ isset($about?->image3) ? asset('storage/' . $about->image3) : '' }}"
+                                            alt="" style="max-height:150px; margin-top:10px;">
                                     </div>
                                     <div class="col-md-6 mt-2">
                                         <label class="form-label">Image 4</label>
                                         <input type="file" name="image4" id="image4" class="form-control">
                                         <img id="preview_image4"
-                                            src="{{ isset($about->image4) ? asset('storage/' . $about->image4) : '' }}"
-                                            alt="Image 4 Preview" style="max-height:150px; margin-top:10px;">
+                                            src="{{ isset($about?->image4) ? asset('storage/' . $about->image4) : '' }}"
+                                            alt="" style="max-height:150px; margin-top:10px;">
                                     </div>
                                 </div>
 
@@ -82,8 +82,8 @@
                                         <input type="file" name="hero_image_file" id="hero_image_file"
                                             class="form-control">
                                         <img id="hero_image_preview"
-                                            src="{{ isset($about->hero_image) ? asset('storage/' . $about->hero_image) : '' }}"
-                                            style="max-height:150px; margin-top:10px;" alt="Preview Hero Image">
+                                            src="{{ isset($about?->hero_image) ? asset('storage/' . $about->hero_image) : '' }}"
+                                            style="max-height:150px; margin-top:10px;" alt="">
                                     </div>
                                 </div>
 
@@ -109,15 +109,15 @@
                                     <input type="file" name="partner_image_file" id="partner_image_file"
                                         class="form-control">
                                     <img id="partner_image_preview"
-                                        src="{{ isset($about->partnerSection->image_url) ? asset('storage/' . $about->partnerSection->image_url) : '' }}"
-                                        style="max-height:150px; margin-top:10px;" alt="Preview Partner Image">
+                                        src="{{ isset($about?->partnerSection->image_url) ? asset('storage/' . $about->partnerSection->image_url) : '' }}"
+                                        style="max-height:150px; margin-top:10px;" alt="">
                                 </div>
 
                                 <!-- Why Us Features -->
                                 <h5>Why Us Features</h5>
                                 <div id="why-us-features-container">
-                                    @if (isset($about->whyUsFeatures) && $about->whyUsFeatures->count())
-                                        @foreach ($about->whyUsFeatures as $feature)
+                                    @if (isset($about?->whyUsFeatures) && $about->whyUsFeatures->count())
+                                        @foreach ($about?->whyUsFeatures as $feature)
                                             <div class="input-group mb-2 feature-item">
                                                 <input type="text" name="why_us_features[]" class="form-control"
                                                     value="{{ $feature->text }}">

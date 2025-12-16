@@ -39,4 +39,9 @@ class Variant extends Model
     {
         return $this->hasMany(VariantImage::class);
     }
+
+    public function flashSaleItems()
+    {
+        return $this->hasMany(FlashSaleItem::class, 'variant_id');
+    }
 }

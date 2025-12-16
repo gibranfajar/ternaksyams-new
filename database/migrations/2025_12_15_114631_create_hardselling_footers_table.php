@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('hardsellings', function (Blueprint $table) {
+        Schema::create('hardselling_footers', function (Blueprint $table) {
             $table->id();
-            $table->string('content_image');
-            $table->string('button_image');
-            $table->string('button_link')->nullable();
-            $table->enum('position', ['top', 'bottom']);
-            $table->integer('sort');
+            $table->string('footer_text');
+            $table->string('background_color');
+            $table->string('youtube');
+            $table->string('instagram');
+            $table->string('tiktok');
+            $table->string('facebook');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('hardsellings');
+        Schema::dropIfExists('hardselling_footers');
     }
 };

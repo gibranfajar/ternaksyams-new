@@ -31,57 +31,61 @@ class CartController extends Controller
         DB::beginTransaction();
 
         try {
-            // Normalisasi session (hindari whitespace)
             $guestToken = $request->session ? trim($request->session) : null;
 
-            // 1) Cari cart aktif yang sudah ada (prioritaskan user_id kalau ada)
-            if ($request->user_id) {
-                $cart = Cart::where('user_id', $request->user_id)
-                    ->where('status', 'active')
-                    ->first();
-            } else {
-                $cart = Cart::where('session', $guestToken)
-                    ->where('status', 'active')
-                    ->first();
-            }
+            // 1. Cari cart aktif
+            $cart = Cart::when($request->user_id, function ($q) use ($request) {
+                $q->where('user_id', $request->user_id);
+            }, function ($q) use ($guestToken) {
+                $q->where('session', $guestToken);
+            })
+                ->where('status', 'active')
+                ->lockForUpdate()
+                ->first();
 
-            // 2) Jika belum ada, buat cart baru (di dalam transaction)
+            // 2. Buat cart kalau belum ada
             if (! $cart) {
                 $cart = Cart::create([
                     'user_id' => $request->user_id ?? null,
                     'session' => $request->user_id ? null : $guestToken,
                     'status'  => 'active',
-                    'created_at' => now(),
                 ]);
             } else {
-                // update touched
                 $cart->touch();
             }
 
-            // 3) Ambil variant (akan throw 404 kalau gak ketemu)
+            // 3. Ambil variant
             $variant = VariantSize::findOrFail($request->product_id);
 
-            // 4) Cari cart item yang sama (based on variant size)
+            // 4. Ambil pricing (FLASH SALE / NORMAL)
+            $pricing = $variant->getCartPricing();
+
+            // 5. Cari cart item
             $cartItem = CartItem::where('cart_id', $cart->id)
                 ->where('variantsize_id', $variant->id)
                 ->first();
 
             if ($cartItem) {
-                // update qty dan harga sekaligus
                 $cartItem->update([
                     'qty' => $cartItem->qty + $request->qty,
-                    'discount' => $variant->discount,
-                    'original_price' => $variant->price,
-                    'price' => $variant->discount != 0 ? $variant->price_after_discount : $variant->price,
+                    'is_sale' => $pricing['is_sale'],
+                    'is_flashsale' => $pricing['is_flashsale'],
+                    'discount_type' => $pricing['discount_type'],
+                    'discount' => $pricing['discount'],
+                    'original_price' => $pricing['original_price'],
+                    'price' => $pricing['price'],
                 ]);
             } else {
                 CartItem::create([
                     'cart_id' => $cart->id,
                     'variantsize_id' => $variant->id,
                     'qty' => $request->qty,
-                    'discount' => $variant->discount,
-                    'original_price' => $variant->price,
-                    'price' => $variant->discount != 0 ? $variant->price_after_discount : $variant->price,
+                    'is_sale' => $pricing['is_sale'],
+                    'is_flashsale' => $pricing['is_flashsale'],
+                    'discount_type' => $pricing['discount_type'],
+                    'discount' => $pricing['discount'],
+                    'original_price' => $pricing['original_price'],
+                    'price' => $pricing['price'],
                 ]);
             }
 
@@ -95,40 +99,17 @@ class CartController extends Controller
                 ],
                 'message' => 'Product added to cart successfully.',
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            DB::rollBack();
-
-            // Jika duplicate key karena race condition, coba cari ulang cart yg sudah ada
-            if ($e->errorInfo[1] === 1062) { // MySQL duplicate entry kode
-                $retryCart = Cart::where('session', $guestToken)->where('status', 'active')->first();
-                if ($retryCart) {
-                    // lakukan insert cart_item minimal atau balas sukses dengan cart id
-                    return response()->json([
-                        'success' => true,
-                        'data' => [
-                            'cart_id' => $retryCart->id,
-                            'session' => $retryCart->session,
-                        ],
-                        'message' => 'Product added to cart (retried).',
-                    ]);
-                }
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to add product to cart.',
-                'error'   => $e->getMessage(),
-            ], 500);
         } catch (\Exception $e) {
             DB::rollBack();
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to add product to cart.',
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
+
 
     /*
      * Get cart

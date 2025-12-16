@@ -15,53 +15,74 @@
 
                 <!-- Wrapper produk scrollable -->
                 <div id="product-list">
-                    @foreach ($products as $item)
-                        @foreach ($item->variants as $variant)
+                    @foreach ($products as $product)
+                        @foreach ($product->variants as $variant)
                             @php
-                                $isInFlashSale = $productVariants->contains('id', $variant->id);
+                                // ambil semua item flash sale untuk variant ini
+                                $flashsaleSizes = $flashSaleItems
+                                    ->where('variant_id', $variant->id)
+                                    ->keyBy('variantsize_id');
                             @endphp
 
-                            <div class="card mb-2 p-2">
-                                <div class="d-flex align-items-center">
-                                    <!-- Checkbox -->
-                                    <div class="form-check me-2">
-                                        <input class="form-check-input" type="checkbox" value="{{ $variant->id }}"
-                                            id="product{{ $variant->id }}" name="products[{{ $variant->id }}][id]"
-                                            {{ $isInFlashSale ? 'checked' : '' }}>
-                                    </div>
+                            <div class="card mb-3 p-3">
 
-                                    <!-- Image -->
-                                    <img src="{{ asset('storage/' . ($variant->images[0]->image_path ?? 'default.png')) }}"
-                                        alt="Product Image" width="60" height="60" class="rounded me-3">
+                                {{-- VARIANT HEADER --}}
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="{{ asset('storage/' . optional($variant->images->first())->image_path) }}"
+                                        width="60" height="60" class="rounded me-3">
 
-                                    <!-- Info -->
-                                    <div class="flex-grow-1">
-                                        <label class="fw-bold mb-0" for="product{{ $variant->id }}">
-                                            {{ $variant->name }}
-                                        </label>
-                                    </div>
-
-                                    <!-- Discount & Qty (ambil dari variantSize flashsale) -->
-                                    <div class="d-flex gap-2">
-                                        <div>
-                                            <label class="form-label small mb-0">Discount %</label>
-                                            <input type="number" class="form-control form-control-sm"
-                                                name="products[{{ $variant->id }}][discount]" placeholder="0"
-                                                min="0"
-                                                value="{{ $variant->sizes->first()->discount_flashsale ?? '' }}">
-                                        </div>
-                                        <div>
-                                            <label class="form-label small mb-0">Qty</label>
-                                            <input type="number" class="form-control form-control-sm"
-                                                name="products[{{ $variant->id }}][qty]" placeholder="0" min="0"
-                                                value="{{ $variant->sizes->first()->stock_flashsale ?? '' }}">
-                                        </div>
+                                    <div>
+                                        <div class="fw-bold">{{ $variant->name }}</div>
+                                        <small class="text-muted">{{ $product->name }}</small>
                                     </div>
                                 </div>
+
+                                {{-- SIZES --}}
+                                <div class="ms-4">
+                                    @foreach ($variant->sizes as $variantSize)
+                                        @php
+                                            $flashItem = $flashsaleSizes->get($variantSize->id);
+                                        @endphp
+
+                                        <div class="d-flex align-items-center gap-3 mb-2">
+
+                                            {{-- CHECKBOX PER SIZE --}}
+                                            <input type="checkbox" class="form-check-input flash-size-checkbox"
+                                                data-variant-id="{{ $variant->id }}"
+                                                data-variant-name="{{ $variant->name }}"
+                                                data-product-name="{{ $product->name }}"
+                                                data-variant-size-id="{{ $variantSize->id }}"
+                                                data-size-label="{{ $variantSize->size->label }}"
+                                                data-image="{{ asset('storage/' . optional($variant->images->first())->image_path) }}"
+                                                {{ $flashItem ? 'checked' : '' }}>
+
+                                            {{-- SIZE LABEL --}}
+                                            <div class="fw-semibold" style="width:80px">
+                                                {{ $variantSize->size->label }} gr
+                                            </div>
+
+                                            {{-- DISCOUNT --}}
+                                            <input type="number" class="form-control form-control-sm"
+                                                style="width:120px"
+                                                name="selected_products[{{ $variant->id }}][sizes][{{ $variantSize->id }}][discount]"
+                                                placeholder="Discount %" value="{{ $flashItem->discount ?? '' }}"
+                                                min="0">
+
+                                            {{-- QTY --}}
+                                            <input type="number" class="form-control form-control-sm"
+                                                style="width:120px"
+                                                name="selected_products[{{ $variant->id }}][sizes][{{ $variantSize->id }}][qty]"
+                                                placeholder="Qty" value="{{ $flashItem->stock ?? '' }}" min="0">
+
+                                        </div>
+                                    @endforeach
+                                </div>
+
                             </div>
                         @endforeach
                     @endforeach
                 </div>
+
             </div>
 
             <div class="modal-footer">

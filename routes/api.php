@@ -5,7 +5,11 @@ use App\Http\Controllers\API\CartController;
 use App\Http\Controllers\API\MasterAPIController;
 use App\Http\Controllers\API\RajaongkirController;
 use App\Http\Controllers\API\TransactionController;
+use App\Http\Controllers\AuthController as ControllersAuthController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/dashboard/chart', [ControllersAuthController::class, 'dashboardChart'])->name('dashboard.chart')->middleware('auth:sanctum');
+Route::get('/dashboard/income-overview', [ControllersAuthController::class, 'incomeOverview'])->name('income.overview')->middleware('auth:sanctum');
 
 Route::get('/user', [MasterAPIController::class, 'getUser'])->middleware('auth:sanctum');
 
@@ -36,9 +40,6 @@ Route::get('/testimonials', [MasterAPIController::class, 'getTestimonials']);
 Route::prefix('/cart')->group(function () {
     Route::post('add', [CartController::class, 'addToCart']);
     Route::post('list', [CartController::class, 'getCart']);
-    // Route::post('increment', [CartController::class, 'increment']);
-    // Route::post('decrement', [CartController::class, 'decrement']);
-    // Route::delete('remove/{id}', [CartController::class, 'remove']);
 });
 
 // voucher apply
@@ -50,6 +51,9 @@ Route::get('/brands', [MasterAPIController::class, 'brands']);
 Route::get('/brand/{slug}', [MasterAPIController::class, 'detailBrand']);
 Route::get('/variant-all-brand', [MasterAPIController::class, 'variantAllBrand']);
 
+// Hardsellings
+Route::get('/hardsellings', [MasterAPIController::class, 'hardsellings']);
+
 // Category
 Route::get('/categories', [MasterAPIController::class, 'categories']);
 // Products
@@ -57,6 +61,9 @@ Route::get('/products', [MasterAPIController::class, 'products']);
 Route::get('/product/{slug}', [MasterAPIController::class, 'detailProduct']);
 // Variants
 Route::get('/variants', [MasterAPIController::class, 'variants']);
+
+Route::get('/flash-sale-products', [MasterAPIController::class, 'flashSaleProducts']);
+Route::get('/flash-sale-products/{slug}', [MasterAPIController::class, 'detailFlashSaleProduct']);
 
 // Articles
 Route::get('/articles', [MasterAPIController::class, 'articles']);

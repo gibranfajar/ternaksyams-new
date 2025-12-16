@@ -44,8 +44,10 @@
                     <ul class="pc-submenu">
                         <li class="pc-item"><a class="pc-link" href="{{ route('hardsellings.index') }}">Content</a>
                         </li>
-                        <li class="pc-item"><a class="pc-link" href="#">Cta</a></li>
-                        <li class="pc-item"><a class="pc-link" href="#">Footer</a></li>
+                        <li class="pc-item"><a class="pc-link" href="{{ route('hardsellings.cta.index') }}">Cta</a></li>
+                        <li class="pc-item"><a class="pc-link"
+                                href="{{ route('hardselling-footers.index') }}">Footer</a>
+                        </li>
                     </ul>
                 </li>
 

@@ -5,19 +5,20 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ArticleResource;
 use App\Http\Resources\BenefitResource;
+use App\Http\Resources\FlashSaleDetailResource;
 use App\Http\Resources\ProductDetailResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\PromotionResource;
 use App\Http\Resources\TutorialResource;
-use App\Http\Resources\VariantResource;
+use App\Http\Resources\FlashSaleProductResource;
 use App\Models\About;
 use App\Models\Affiliator;
 use App\Models\Article;
 use App\Models\Benefit;
 use App\Models\Brand;
-use App\Models\BrandVariant;
 use App\Models\Category;
 use App\Models\Faq;
+use App\Models\FlashsaleItem;
 use App\Models\Footer;
 use App\Models\Product;
 use App\Models\Promotion;
@@ -249,6 +250,24 @@ class MasterAPIController extends Controller
 
 
     /**
+     * Hardsellings
+     */
+    public function hardsellings()
+    {
+        $hardsellings = DB::table('hardsellings')->get();
+        $hardsellingCta = DB::table('hardselling_ctas')->first();
+        $hardsellingFooter = DB::table('hardselling_footers')->first();
+
+        $data = [
+            'hardsellings' => $hardsellings,
+            'hardsellingCta' => $hardsellingCta,
+            'hardsellingFooter' => $hardsellingFooter,
+        ];
+
+        return response()->json(['data' => $data], 200);
+    }
+
+    /**
      * Get All Brands
      */
     public function brands()
@@ -358,6 +377,71 @@ class MasterAPIController extends Controller
         }
 
         return response()->json(['data' => $data], 200);
+    }
+
+    /**
+     * Get ALl Flash Sales Products
+     */
+    public function flashSaleProducts()
+    {
+        $now = now();
+
+        $items = FlashsaleItem::with([
+            'variant.product.brand',
+            'variant.category',
+            'variant.images',
+            'variantSize.size',
+            'flashSale',
+        ])
+            ->whereHas('flashSale', function ($q) use ($now) {
+                $q->where('status', 'ongoing')
+                    ->where('start_date', '<=', $now)
+                    ->where('end_date', '>=', $now);
+            })
+            ->get()
+
+            // 🔥 GROUP PER VARIANT
+            ->groupBy('variant_id')
+
+            // 🔥 AMBIL YANG PALING MURAH
+            ->map(function ($group) {
+                return $group->sortBy('flashsale_price')->first();
+            })
+
+            ->values(); // reset index
+
+        return response()->json([
+            'data' => FlashsaleProductResource::collection($items)
+        ]);
+    }
+
+
+    /**
+     * Get Detail Flash Sale Product
+     */
+    public function detailFlashSaleProduct($slug)
+    {
+        $now = now();
+
+        $variants = Variant::with([
+            'sizes.size',
+            'flavour',
+            'product.brand',
+            'product',
+            'flashSaleItems.flashSale',
+        ])
+            ->where('slug', $slug)
+            ->get();
+
+        if ($variants->isEmpty()) {
+            return response()->json([
+                'message' => 'Product not found'
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => FlashSaleDetailResource::collection($variants)
+        ], 200);
     }
 
     /*

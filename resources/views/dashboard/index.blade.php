@@ -20,7 +20,7 @@
             <!-- [ Main Content ] start -->
             <div class="row">
                 <!-- [ sample-page ] start -->
-                <div class="col-md-6 col-xl-3">
+                {{-- <div class="col-md-6 col-xl-3">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="mb-2 f-w-400 text-muted">Total Page Views</h6>
@@ -31,36 +31,65 @@
                             </p>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
+                </div> --}}
+                <div class="col-md-6 col-xl-4">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="mb-2 f-w-400 text-muted">Total Users</h6>
-                            <h4 class="mb-3">78,250 <span class="badge bg-light-success border border-success"><i
-                                        class="ti ti-trending-up"></i> 70.5%</span></h4>
-                            <p class="mb-0 text-muted text-sm">You made an extra <span class="text-success">8,900</span>
-                                this year</p>
+                            <h4 class="mb-3">
+                                {{ number_format($usersNow) }}
+                                <span class="badge bg-light-success border border-success">
+                                    <i class="ti ti-{{ $usersGrowth >= 0 ? 'trending-up' : 'trending-down' }}"></i>
+                                    {{ abs($usersGrowth) }}%
+                                </span>
+                            </h4>
+                            <p class="mb-0 text-muted text-sm">
+                                You made an extra
+                                <span class="text-success">
+                                    {{ number_format(abs($usersExtra)) }}
+                                </span>
+                                this year
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-xl-3">
+                <div class="col-md-6 col-xl-4">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="mb-2 f-w-400 text-muted">Total Order</h6>
-                            <h4 class="mb-3">18,800 <span class="badge bg-light-warning border border-warning"><i
-                                        class="ti ti-trending-down"></i> 27.4%</span></h4>
-                            <p class="mb-0 text-muted text-sm">You made an extra <span class="text-warning">1,943</span>
-                                this year</p>
+                            <h4 class="mb-3">
+                                {{ number_format($ordersNow) }}
+                                <span class="badge bg-light-warning border border-warning">
+                                    <i class="ti ti-{{ $ordersGrowth >= 0 ? 'trending-up' : 'trending-down' }}"></i>
+                                    {{ abs($ordersGrowth) }}%
+                                </span>
+                            </h4>
+                            <p class="mb-0 text-muted text-sm">
+                                You made an extra
+                                <span class="text-warning">
+                                    {{ number_format(abs($ordersExtra)) }}
+                                </span>
+                                this year
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-xl-3">
+                <div class="col-md-6 col-xl-4">
                     <div class="card">
                         <div class="card-body">
                             <h6 class="mb-2 f-w-400 text-muted">Total Sales</h6>
-                            <h4 class="mb-3">$35,078 <span class="badge bg-light-danger border border-danger"><i
-                                        class="ti ti-trending-down"></i> 27.4%</span></h4>
-                            <p class="mb-0 text-muted text-sm">You made an extra <span class="text-danger">$20,395</span>
+                            <h4 class="mb-3">
+                                Rp {{ number_format($salesNow) }}
+                                <span class="badge bg-light-info border border-info">
+                                    <i class="ti ti-{{ $salesGrowth >= 0 ? 'trending-up' : 'trending-down' }}"></i>
+                                    {{ abs($salesGrowth) }}%
+                                </span>
+                            </h4>
+                            <p class="mb-0 text-muted text-sm">
+                                You made an extra
+                                <span class="text-info">
+                                    Rp {{ number_format(abs($salesExtra)) }}
+                                </span>
                                 this year
                             </p>
                         </div>
@@ -69,7 +98,7 @@
 
                 <div class="col-md-12 col-xl-8">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h5 class="mb-0">Unique Visitor</h5>
+                        <h5 class="mb-0">Growth Overview</h5>
                         <ul class="nav nav-pills justify-content-end mb-0" id="chart-tab-tab" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="chart-tab-home-tab" data-bs-toggle="pill"
@@ -83,6 +112,7 @@
                             </li>
                         </ul>
                     </div>
+
                     <div class="card">
                         <div class="card-body">
                             <div class="tab-content" id="chart-tab-tabContent">
@@ -98,12 +128,13 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-12 col-xl-4">
                     <h5 class="mb-3">Income Overview</h5>
                     <div class="card">
                         <div class="card-body">
                             <h6 class="mb-2 f-w-400 text-muted">This Week Statistics</h6>
-                            <h3 class="mb-3">$7,650</h3>
+                            <h3 class="mb-3" id="income-total">Rp 0</h3>
                             <div id="income-overview-chart"></div>
                         </div>
                     </div>
@@ -149,7 +180,8 @@
                                                         {{ ucfirst($item->payment->status) }}
                                                     </span>
                                                 </td>
-                                                <td class="text-end">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                                                <td class="text-end">Rp {{ number_format($item->total, 0, ',', '.') }}
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -164,6 +196,179 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/js/plugins/apexcharts.min.js') }}"></script>
-    <script src="{{ asset('assets/js/pages/dashboard-default.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+
+            let weekChart = null;
+            let monthChart = null;
+            let dashboardData = null;
+
+            function createChart(el, labels, users, orders, sales) {
+                return new ApexCharts(document.querySelector(el), {
+                    chart: {
+                        type: 'area',
+                        height: 320,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 2
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    series: [{
+                            name: 'Users',
+                            data: users
+                        },
+                        {
+                            name: 'Orders',
+                            data: orders
+                        },
+                        {
+                            name: 'Sales',
+                            data: sales
+                        }
+                    ],
+                    xaxis: {
+                        categories: labels
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function(val) {
+                                return val.toLocaleString('id-ID');
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                });
+            }
+
+            function loadDashboardChart() {
+                $.ajax({
+                    url: "{{ route('dashboard.chart') }}", // sesuaikan route
+                    type: "GET",
+                    success: function(res) {
+                        dashboardData = res;
+
+                        // render WEEK (default active)
+                        renderWeek();
+                    }
+                });
+            }
+
+            function renderWeek() {
+                if (weekChart) weekChart.destroy();
+
+                weekChart = createChart(
+                    "#visitor-chart",
+                    dashboardData.week.labels,
+                    dashboardData.week.users,
+                    dashboardData.week.orders,
+                    dashboardData.week.sales
+                );
+
+                weekChart.render();
+            }
+
+            function renderMonth() {
+                if (monthChart) monthChart.destroy();
+
+                monthChart = createChart(
+                    "#visitor-chart-1",
+                    dashboardData.month.labels,
+                    dashboardData.month.users,
+                    dashboardData.month.orders,
+                    dashboardData.month.sales
+                );
+
+                monthChart.render();
+            }
+
+            // initial load
+            loadDashboardChart();
+
+            // tab events
+            $('#chart-tab-profile-tab').on('shown.bs.tab', function() {
+                renderWeek();
+            });
+
+            $('#chart-tab-home-tab').on('shown.bs.tab', function() {
+                renderMonth();
+            });
+
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            let incomeChart = null;
+
+            function formatRupiah(number) {
+                return 'Rp ' + number.toLocaleString('id-ID');
+            }
+
+            $.ajax({
+                url: "{{ route('income.overview') }}", // sesuaikan route
+                type: "GET",
+                success: function(res) {
+
+                    // set total income
+                    $('#income-total').text(formatRupiah(res.total));
+
+                    // destroy chart jika reload
+                    if (incomeChart) {
+                        incomeChart.destroy();
+                    }
+
+                    const options = {
+                        chart: {
+                            type: 'donut',
+                            height: 260
+                        },
+                        labels: res.labels, // ['Sales', 'Orders', 'Users']
+                        series: res.series, // [sales, orders, users]
+                        legend: {
+                            position: 'bottom'
+                        },
+                        dataLabels: {
+                            enabled: true
+                        },
+                        tooltip: {
+                            y: {
+                                formatter: function(val) {
+                                    return val.toLocaleString('id-ID');
+                                }
+                            }
+                        },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%'
+                                }
+                            }
+                        }
+                    };
+
+                    incomeChart = new ApexCharts(
+                        document.querySelector("#income-overview-chart"),
+                        options
+                    );
+
+                    incomeChart.render();
+                },
+                error: function() {
+                    $('#income-overview-chart').html(
+                        '<p class="text-danger text-center">Failed to load data</p>'
+                    );
+                }
+            });
+
+        });
+    </script>
 @endpush

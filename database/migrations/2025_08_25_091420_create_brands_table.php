@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description');
             $table->string('image');
+            $table->string('main_color')->nullable();
+            $table->string('accent_color')->nullable();
             $table->timestamps();
         });
     }

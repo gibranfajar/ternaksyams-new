@@ -25,6 +25,7 @@ return new class extends Migration
             $table->integer('qty');
             $table->integer('total');
             $table->boolean('is_sale')->default(false);
+            $table->boolean('is_flashsale')->default(false);
             $table->timestamps();
         });
     }

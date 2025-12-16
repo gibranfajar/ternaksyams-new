@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('variantsize_id')->constrained('variant_sizes')->onDelete('cascade');
             $table->integer('qty');
             $table->boolean('is_sale')->default(false);
+            $table->boolean('is_flashsale')->default(false);
             $table->enum('discount_type', ['percent', 'value'])->nullable()->default('percent');
             $table->integer('discount')->default(0);
             $table->integer('original_price')->default(0);

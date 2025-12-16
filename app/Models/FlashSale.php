@@ -13,8 +13,8 @@ class FlashSale extends Model
 
     protected $guarded = ['id'];
 
-    public function variants()
+    public function items()
     {
-        return $this->hasMany(Variant::class, 'flashsale_id', 'id');
+        return $this->hasMany(FlashsaleItem::class, 'flashsale_id', 'id');
     }
 }

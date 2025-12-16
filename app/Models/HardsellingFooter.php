@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Hardselling extends Model
+class HardsellingFooter extends Model
 {
-    protected $table = 'hardsellings';
+    protected $table = 'hardselling_footers';
     protected $guarded = [];
 }

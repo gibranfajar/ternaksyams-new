@@ -137,6 +137,19 @@
                                     </div>
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="main_color" class="form-label">Main Color</label>
+                                        <input type="color" class="form-control form-control-color" id="main_color"
+                                            name="main_color" value="{{ old('main_color') }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="accent_color" class="form-label">Accent Color</label>
+                                        <input type="color" class="form-control form-control-color" id="accent_color"
+                                            name="accent_color" value="{{ old('accent_color') }}">
+                                    </div>
+                                </div>
+
                                 <hr>
 
                                 <h5 class="mb-3">Reviews & Testimonials</h5>

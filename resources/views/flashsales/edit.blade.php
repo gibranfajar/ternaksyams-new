@@ -58,34 +58,49 @@
                         {{-- Selected Products List --}}
                         <div class="my-3">
                             <ul class="list-group" id="selected-products-list">
-                                @foreach ($variants as $item)
+                                @foreach ($flashSaleItems as $item)
                                     <li class="list-group-item d-flex align-items-center justify-content-between">
+
                                         <div class="d-flex align-items-center">
-                                            <img src="{{ asset('storage/' . $item->images->first()->image_path ?? '') }}"
+                                            <img src="{{ asset('storage/' . optional($item->variant->images->first())->image_path) }}"
                                                 width="40" height="40" class="rounded me-2">
+
                                             <div>
-                                                <div class="fw-bold">{{ $item->name }}</div>
-                                                <small>Discount: {{ $item->sizes->first()->discount_flashsale }}% | Qty:
-                                                    {{ $item->sizes->first()->stock_flashsale }}</small>
+                                                <div class="fw-bold">
+                                                    {{ $item->variant->product->name }} - {{ $item->variant->name }}
+                                                </div>
+                                                <small>
+                                                    Size: {{ $item->variantSize->size->label }} gr |
+                                                    Discount: {{ $item->discount }}% |
+                                                    Qty: {{ $item->stock }}
+                                                </small>
                                             </div>
                                         </div>
-                                        <div class="d-flex align-items-center">
-                                            <!-- delete -->
-                                            <button type="button" class="btn btn-sm btn-danger ms-2 remove-product">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                        <!-- hidden input biar ikut tersubmit -->
-                                        <input type="hidden" name="selected_products[{{ $item->id }}][id]"
-                                            value="{{ $item->id }}">
-                                        <input type="hidden" name="selected_products[{{ $item->id }}][discount]"
-                                            value="{{ $item->sizes->first()->discount_flashsale }}">
-                                        <input type="hidden" name="selected_products[{{ $item->id }}][qty]"
-                                            value="{{ $item->sizes->first()->stock_flashsale }}">
+
+                                        <button type="button" class="btn btn-sm btn-danger remove-product">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+
+                                        {{-- hidden inputs (MATCH REQUEST STRUCTURE) --}}
+                                        <input type="hidden" name="selected_products[{{ $item->variant_id }}][variant_id]"
+                                            value="{{ $item->variant_id }}">
+
+                                        <input type="hidden"
+                                            name="selected_products[{{ $item->variant_id }}][sizes][{{ $item->variantsize_id }}][variant_size_id]"
+                                            value="{{ $item->variantsize_id }}">
+
+                                        <input type="hidden"
+                                            name="selected_products[{{ $item->variant_id }}][sizes][{{ $item->variantsize_id }}][discount]"
+                                            value="{{ $item->discount }}">
+
+                                        <input type="hidden"
+                                            name="selected_products[{{ $item->variant_id }}][sizes][{{ $item->variantsize_id }}][qty]"
+                                            value="{{ $item->stock }}">
                                     </li>
                                 @endforeach
                             </ul>
                         </div>
+
 
                         {{-- button --}}
                         <div class="d-flex justify-content-end">
@@ -104,56 +119,74 @@
 
     <script>
         $(document).ready(function() {
-            // Saat klik tombol Add Selected Products
+
             $("#btn-add-products").on("click", function() {
 
-                // Kosongkan list lama
+                // replace total (EDIT = SET ULANG)
                 $("#selected-products-list").empty();
 
-                // Loop semua checkbox yang dicentang
-                $("#addFlashSaleModal input.form-check-input:checked").each(function() {
-                    let $card = $(this).closest(".card");
+                $("#addFlashSaleModal .flash-size-checkbox:checked").each(function() {
 
-                    let productId = $(this).val();
-                    let productName = $card.find("label.fw-bold").text().trim();
-                    let imgSrc = $card.find("img").attr("src");
-                    let discount = $card.find("input[name*='[discount]']").val();
-                    let qty = $card.find("input[name*='[qty]']").val();
+                    let variantId = $(this).data("variant-id");
+                    let variantName = $(this).data("variant-name");
+                    let productName = $(this).data("product-name");
+                    let variantSizeId = $(this).data("variant-size-id");
+                    let sizeLabel = $(this).data("size-label");
+                    let imgSrc = $(this).data("image");
 
-                    // Buat element list baru
+                    let $row = $(this).closest(".d-flex");
+                    let discount = $row.find("input[name*='[discount]']").val();
+                    let qty = $row.find("input[name*='[qty]']").val();
+
+                    if (!discount || !qty) return;
+
                     let li = `
-                    <li class="list-group-item d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <img src="${imgSrc}" width="40" height="40" class="rounded me-2">
-                            <div>
-                                <div class="fw-bold">${productName}</div>
-                                <small>Discount: ${discount}% | Qty: ${qty}</small>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <!-- delete -->
-                            <button type="button" class="btn btn-sm btn-danger ms-2 remove-product">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                        <!-- hidden input biar ikut tersubmit -->
-                        <input type="hidden" name="selected_products[${productId}][id]" value="${productId}">
-                        <input type="hidden" name="selected_products[${productId}][discount]" value="${discount}">
-                        <input type="hidden" name="selected_products[${productId}][qty]" value="${qty}">
-                    </li>
-                    `;
+            <li class="list-group-item d-flex align-items-center justify-content-between"
+                data-key="${variantId}-${variantSizeId}">
+                <div class="d-flex align-items-center">
+                    <img src="${imgSrc}" width="40" height="40" class="rounded me-2">
+                    <div>
+                        <div class="fw-bold">${productName} - ${variantName}</div>
+                        <small>
+                            Size: ${sizeLabel} gr |
+                            Discount: ${discount}% |
+                            Qty: ${qty}
+                        </small>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-danger remove-product">
+                    <i class="bi bi-trash"></i>
+                </button>
+
+                <input type="hidden"
+                    name="selected_products[${variantId}][variant_id]"
+                    value="${variantId}">
+
+                <input type="hidden"
+                    name="selected_products[${variantId}][sizes][${variantSizeId}][variant_size_id]"
+                    value="${variantSizeId}">
+
+                <input type="hidden"
+                    name="selected_products[${variantId}][sizes][${variantSizeId}][discount]"
+                    value="${discount}">
+
+                <input type="hidden"
+                    name="selected_products[${variantId}][sizes][${variantSizeId}][qty]"
+                    value="${qty}">
+            </li>
+            `;
 
                     $("#selected-products-list").append(li);
                 });
 
-                // Tutup modal
                 $("#addFlashSaleModal").modal("hide");
             });
 
-            // Event delegation untuk tombol Remove
             $(document).on("click", ".remove-product", function() {
                 $(this).closest("li").remove();
             });
+
         });
     </script>
 @endsection
