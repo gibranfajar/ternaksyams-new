@@ -109,13 +109,22 @@
                     },
                     error: function(xhr) {
                         Swal.close();
+
+                        let message = 'Gagal menghubungi server.';
+
+                        if (xhr.responseJSON?.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            message = xhr.responseText; // 👈 tampilkan error asli
+                        }
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: xhr.responseJSON?.message ||
-                                'Gagal menghubungi server.'
+                            html: `<pre style="text-align:left">${message}</pre>`
                         });
                     }
+
                 });
             });
         });
