@@ -47,7 +47,7 @@ class VariantSize extends Model
         /**
          * 2️⃣ FLASH SALE (OVERRIDE)
          */
-        $flashSaleItem = FlashSaleItem::where('variantsize_id', $this->id)
+        $flashSaleItem = FlashsaleItem::where('variantsize_id', $this->id)
             ->whereHas('flashsale', function ($q) {
                 $q->where('status', 'ongoing')
                     ->where('start_date', '<=', now())

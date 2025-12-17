@@ -8,8 +8,8 @@ use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\AuthController as ControllersAuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard/chart', [ControllersAuthController::class, 'dashboardChart'])->name('dashboard.chart')->middleware('auth:sanctum');
-Route::get('/dashboard/income-overview', [ControllersAuthController::class, 'incomeOverview'])->name('income.overview')->middleware('auth:sanctum');
+Route::get('/dashboard/chart', [ControllersAuthController::class, 'dashboardChart'])->name('dashboard.chart');
+Route::get('/dashboard/income-overview', [ControllersAuthController::class, 'incomeOverview'])->name('income.overview');
 
 Route::get('/user', [MasterAPIController::class, 'getUser'])->middleware('auth:sanctum');
 
