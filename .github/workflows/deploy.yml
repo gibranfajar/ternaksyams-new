@@ -1,4 +1,4 @@
-name: Backend CI/CD (Laravel)
+name: Backend CI/CD (Docker No Registry)
 
 on:
   push:
@@ -7,37 +7,11 @@ on:
       - "backend/**"
 
 jobs:
-  build:
-    name: Build & Push Docker Image
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Login Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build & Push Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: |
-            gibranfajar/ternaksyams-backend:latest
-            gibranfajar/ternaksyams-backend:${{ github.sha }}
-
   deploy:
-    name: Deploy to VPS
-    needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -46,8 +20,11 @@ jobs:
           script: |
             cd /var/www/ternaksyams/backend
 
-            docker compose pull
+            git pull origin main
+
+            docker compose down
+            docker compose build
             docker compose up -d
 
-            docker exec ternaksyams_backend php artisan migrate --force
-            docker exec ternaksyams_backend php artisan optimize
+            docker exec backend php artisan migrate --force
+            docker exec backend php artisan optimize
