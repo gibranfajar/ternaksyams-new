@@ -21,7 +21,7 @@ class OrderController extends Controller
      */
     public function pickup()
     {
-        $orders = Order::where('status', 'processing')
+        $orders = Order::where('status', 'packaging')
             ->whereHas('shipping', function ($query) {
                 $query->whereNotNull('order_number')
                     ->where('order_number', '!=', '');
@@ -168,6 +168,11 @@ class OrderController extends Controller
             if (!$result || !isset($result['order_no'])) {
                 return back()->with('error', 'Response dari Komship tidak valid.');
             }
+
+            // ✅ Update order status
+            $order->update([
+                'status' => 'packaging',
+            ]);
 
             // ✅ Update shipping order number
             $order->shipping()->update([
