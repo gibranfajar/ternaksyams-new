@@ -40,14 +40,14 @@
                             </p>
 
                             {{-- BUTTON --}}
-                            <div style="text-align:center; margin:30px 0;">
+                            {{-- <div style="text-align:center; margin:30px 0;">
                                 <a href="{{ url('/login') }}"
                                     style="background:#198754; color:#ffffff; text-decoration:none;
                                       padding:12px 28px; border-radius:6px; font-size:15px;
                                       display:inline-block;">
                                     Masuk ke Dashboard
                                 </a>
-                            </div>
+                            </div> --}}
 
                             <p style="font-size:14px; color:#777; line-height:1.6;">
                                 Jika Anda memiliki pertanyaan, silakan balas email ini atau hubungi tim support kami.

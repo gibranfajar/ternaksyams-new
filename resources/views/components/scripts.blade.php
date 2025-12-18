@@ -6,136 +6,144 @@
 <script src="{{ asset('assets/js/plugins/feather.min.js') }}"></script>
 
 <script>
-    // datatables
-    $(document).ready(function() {
-        $('#myTable').DataTable();
-    });
+    /* ============================
+     * GLOBAL READY (SATU AJA)
+     * ============================ */
+    $(function() {
 
-    $(document).ready(function() {
-        $('#usersTable').DataTable({
-            paging: false, // matikan paging
-            searching: true, // search tetap aktif
-            info: false, // hilangkan "showing X of Y"
-            scrollY: "300px", // tinggi konten scroll
-            scrollCollapse: true // biar scroll rapih
-        });
-    });
+        /* ============================
+         * DATATABLES
+         * ============================ */
+        if ($('#myTable').length) {
+            $('#myTable').DataTable({
+                dom: 'lfrtip',
+                responsive: true,
+                autoWidth: false
+            });
+        }
 
-    layout_change('light');
-    change_box_container('false');
-    layout_rtl_change('false');
-    preset_change("preset-1");
-    font_change("Public-Sans");
+        if ($('#usersTable').length) {
+            $('#usersTable').DataTable({
+                paging: false,
+                searching: true,
+                info: false,
+                scrollY: "300px",
+                scrollCollapse: true,
+                dom: 'frtip'
+            });
+        }
 
-    // preview image
-    $(document).ready(function() {
-        $("#giziInput").on("change", function() {
+        /* ============================
+         * TEMPLATE CONFIG (SAFE)
+         * ============================ */
+        if (typeof layout_change === 'function') {
+            layout_change('light');
+            change_box_container('false');
+            layout_rtl_change('false');
+            preset_change("preset-1");
+            font_change("Public-Sans");
+        }
+
+        /* ============================
+         * IMAGE PREVIEW (GIZI)
+         * ============================ */
+        $('#giziInput').on('change', function() {
             const file = this.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    $("#previewImg").attr("src", e.target.result).show();
-                };
-                reader.readAsDataURL(file);
-            }
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                $('#previewImg').attr('src', e.target.result).show();
+            };
+            reader.readAsDataURL(file);
         });
-    });
 
-    $(document).ready(function() {
+        /* ============================
+         * IMAGE PREVIEW (THUMBNAIL - MODAL SAFE)
+         * ============================ */
         $(document).on('change', '#thumbnail', function() {
-            // coba cari modal terdekat
-            let modal = $(this).closest('.modal');
-
-            let preview;
-            if (modal.length) {
-                // kalau input ada di dalam modal
-                preview = modal.find('#thumbnailPreview');
-            } else {
-                // fallback: cari global (untuk halaman create)
-                preview = $('#thumbnailPreview');
-            }
+            const modal = $(this).closest('.modal');
+            const preview = modal.length ?
+                modal.find('#thumbnailPreview') :
+                $('#thumbnailPreview');
 
             preview.empty();
 
-            let file = this.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let img = $('<img>', {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.append(
+                    $('<img>', {
                         src: e.target.result,
                         class: 'img-thumbnail mt-2',
                         css: {
                             maxWidth: '200px'
                         }
-                    });
-                    preview.append(img);
-                };
-                reader.readAsDataURL(file);
-            }
+                    })
+                );
+            };
+            reader.readAsDataURL(file);
         });
     });
+</script>
+<script>
+    jQuery(function($) {
 
+        /* ============================
+         * TOASTR CONFIG
+         * ============================ */
+        if (typeof toastr !== 'undefined') {
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: "toast-top-right",
+                timeOut: "2000",
+                extendedTimeOut: "1000"
+            };
+        }
 
+        /* ============================
+         * FLASH MESSAGE
+         * ============================ */
+        @if (session('success'))
+            toastr.success(@json(session('success')));
+        @endif
 
-    // SweetAlert handle
-    @if (session('success'))
-        document.addEventListener("DOMContentLoaded", function() {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: @json(session('success')),
-                showConfirmButton: false,
-                timer: 1000,
-                timerProgressBar: true
-            });
-        });
-    @endif
+        @if (session('error'))
+            toastr.error(@json(session('error')));
+        @endif
 
+        @if ($errors->any())
+            toastr.error("{!! implode('<br>', $errors->all()) !!}");
+        @endif
 
-    @if (session('error'))
-        document.addEventListener("DOMContentLoaded", function() {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: @json(session('error')),
-            });
-        });
-    @endif
+    });
+</script>
 
-    // error handling request
-    @if ($errors->any())
-        document.addEventListener("DOMContentLoaded", function() {
-            let errorMessages = `{!! implode('\n', $errors->all()) !!}`;
-            Swal.fire({
-                icon: 'error',
-                title: 'Validasi Gagal',
-                text: errorMessages,
-            });
-        });
-    @endif
+<script>
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-delete');
+        if (!btn) return;
 
-    // popup handle delete confirmation
-    $(document).ready(function() {
-        $('.btn-delete').on('click', function(e) {
-            e.preventDefault();
+        e.preventDefault();
 
-            const form = $(this).closest('form');
+        const form = btn.closest('form');
 
-            Swal.fire({
-                title: 'Yakin ingin menghapus data ini?',
-                text: "Data yang sudah dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
+        Swal.fire({
+            title: 'Yakin?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
         });
     });
 </script>

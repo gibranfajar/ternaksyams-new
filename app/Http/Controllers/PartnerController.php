@@ -169,6 +169,8 @@ class PartnerController extends Controller
             );
         }
 
-        return back()->with('success', 'Status reseller berhasil diperbarui.');
+        return redirect()
+            ->route('partners.index')
+            ->with('success', 'Status reseller berhasil diperbarui.');
     }
 }
