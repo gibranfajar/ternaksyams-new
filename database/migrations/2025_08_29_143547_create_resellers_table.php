@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('bank');
             $table->string('account_number')->unique();
             $table->string('account_name');
+            $table->enum('status', ['pending', 'approved', 'rejected', 'suspended', 'inactive'])->default('pending');
             $table->timestamps();
         });
     }

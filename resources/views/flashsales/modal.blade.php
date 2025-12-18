@@ -22,7 +22,7 @@
                                             <button type="button"
                                                 class="btn btn-outline-primary btn-sm w-100 btn-variant"
                                                 data-variant-id="{{ $variant->id }}"
-                                                data-variant-name="{{ $variant->variant }}"
+                                                data-variant-name="{{ $variant->name }}"
                                                 data-variant-image="{{ asset('storage/' . $variant->images->first()->image_path) }}">
                                                 Lihat Ukuran
                                             </button>

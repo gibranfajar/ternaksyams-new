@@ -93,7 +93,7 @@ class MasterAPIController extends Controller
             $reseller = Reseller::create($request->all());
             return response()->json(['message' => 'Reseller created successfully', 'reseller' => $reseller], 201);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create reseller'], 500);
+            return response()->json(['message' => 'Failed to create reseller', 'error' => $e], 500);
         }
     }
 

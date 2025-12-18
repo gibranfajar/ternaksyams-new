@@ -49,6 +49,7 @@
                                                 <th>Name</th>
                                                 <th>Email</th>
                                                 <th>Whatsapp</th>
+                                                <th>Status</th>
                                                 <th style="width: 20%" class="text-center">Action</th>
                                             </tr>
                                         </thead>
@@ -59,6 +60,21 @@
                                                     <td>{{ $reseller->name }}</td>
                                                     <td>{{ $reseller->email }}</td>
                                                     <td>{{ $reseller->whatsapp }}</td>
+                                                    <td>
+                                                        @php
+                                                            $statusClass = match ($reseller->status) {
+                                                                'approved' => 'bg-success',
+                                                                'pending' => 'bg-warning',
+                                                                'rejected' => 'bg-danger',
+                                                                'suspended' => 'bg-secondary',
+                                                                'inactive' => 'bg-dark',
+                                                            };
+                                                        @endphp
+
+                                                        <span class="badge {{ $statusClass }}">
+                                                            {{ ucfirst($reseller->status) }}
+                                                        </span>
+                                                    </td>
                                                     <td class="text-center">
                                                         <div class="btn-group gap-2" role="group">
                                                             <button type="button" class="btn btn-sm btn-info"
@@ -66,10 +82,70 @@
                                                                 data-bs-target="#showResellerModal{{ $reseller->id }}">
                                                                 <i class="ti ti-eye"></i>
                                                             </button>
+                                                            <button type="button" class="btn btn-sm btn-warning "
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#editResellerModal{{ $reseller->id }}">
+                                                                <i class="ti ti-pencil"></i>
+                                                            </button>
+                                                            <div class="dropdown position-static">
+                                                                <button class="btn btn-sm btn-secondary"
+                                                                    data-bs-toggle="dropdown">
+                                                                    <i class="ti ti-dots-vertical"></i>
+                                                                </button>
+
+                                                                <ul class="dropdown-menu">
+                                                                    {{-- Status Actions --}}
+                                                                    @if ($reseller->status !== 'approved')
+                                                                        <li>
+                                                                            <form method="POST"
+                                                                                action="{{ route('partner-resellers.updateStatus', $reseller->id) }}">
+                                                                                @csrf
+                                                                                @method('PATCH')
+                                                                                <input type="hidden" name="status"
+                                                                                    value="approved">
+                                                                                <button class="dropdown-item text-success">
+                                                                                    ✔ Approve
+                                                                                </button>
+                                                                            </form>
+                                                                        </li>
+                                                                    @endif
+
+                                                                    @if ($reseller->status !== 'suspended')
+                                                                        <li>
+                                                                            <form method="POST"
+                                                                                action="{{ route('partner-resellers.updateStatus', $reseller->id) }}">
+                                                                                @csrf
+                                                                                @method('PATCH')
+                                                                                <input type="hidden" name="status"
+                                                                                    value="suspended">
+                                                                                <button class="dropdown-item text-warning">
+                                                                                    ⛔ Suspend
+                                                                                </button>
+                                                                            </form>
+                                                                        </li>
+                                                                    @endif
+
+                                                                    @if ($reseller->status !== 'inactive')
+                                                                        <li>
+                                                                            <form method="POST"
+                                                                                action="{{ route('partner-resellers.updateStatus', $reseller->id) }}">
+                                                                                @csrf
+                                                                                @method('PATCH')
+                                                                                <input type="hidden" name="status"
+                                                                                    value="inactive">
+                                                                                <button class="dropdown-item text-danger">
+                                                                                    ❌ Nonaktifkan
+                                                                                </button>
+                                                                            </form>
+                                                                        </li>
+                                                                    @endif
+                                                                </ul>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>
                                                 @include('partners.showreseller')
+                                                @include('partners.editreseller')
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -120,13 +196,24 @@
     </div>
 @endsection
 
+
 @push('scripts')
     <script>
+        let resellerTables = {};
+
         $(document).ready(function() {
+
             @foreach ($types as $type)
-                $('#resellerTable-{{ $type['id'] }}').DataTable();
+                resellerTables['{{ $type['id'] }}'] = $('#resellerTable-{{ $type['id'] }}').DataTable({
+                    responsive: true,
+                    autoWidth: false
+                });
             @endforeach
-            $('#affiliateTable').DataTable();
+
+            $('#affiliateTable').DataTable({
+                responsive: true,
+                autoWidth: false
+            });
         });
     </script>
 @endpush

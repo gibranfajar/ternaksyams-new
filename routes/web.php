@@ -56,6 +56,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('partners', [PartnerController::class, 'index'])->name('partners.index');
 
+    Route::put('partner-resellers/{id}', [PartnerController::class, 'update'])->name('partner-resellers.update');
+    Route::patch('partner-resellers/{id}/updateStatus', [PartnerController::class, 'updateStatus'])->name('partner-resellers.updateStatus');
+
     Route::resource('pricelist-resellers', PricelistResellerController::class);
     Route::patch('pricelist-resellers/{pricelistReseller}/toggle-active', [PricelistResellerController::class, 'toggleActive'])->name('pricelist-resellers.toggleActive');
 
