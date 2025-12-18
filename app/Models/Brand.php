@@ -48,4 +48,9 @@ class Brand extends Model
     {
         return $this->hasOne(BrandTestimonial::class);
     }
+
+    public function testimonialBrands()
+    {
+        return $this->hasMany(TestimonialBrand::class);
+    }
 }

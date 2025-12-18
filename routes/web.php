@@ -23,6 +23,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\SliderController;
+use App\Http\Controllers\TestimonialBrandController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\VideoPlayerController;
@@ -80,6 +81,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('testimonials', TestimonialController::class);
     Route::patch('testimonials/{testimonial}/toggle-status', [TestimonialController::class, 'toggleStatus'])->name('testimonials.toggleStatus');
+
+    Route::resource('testimonial-brands', TestimonialBrandController::class);
+    Route::patch('testimonial-brands/{testimonial}/toggle-status', [TestimonialBrandController::class, 'toggleStatus'])->name('testimonial-brands.toggleStatus');
 
     Route::resource('category-faqs', CategoryFaqController::class);
     Route::resource('faqs', FaqController::class);
