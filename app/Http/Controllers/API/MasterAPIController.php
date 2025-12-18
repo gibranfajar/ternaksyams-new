@@ -102,7 +102,7 @@ class MasterAPIController extends Controller
      */
     public function getResellers()
     {
-        $resellers = Reseller::all();
+        $resellers = Reseller::where('status', 'approved')->get();
 
         /*
     |--------------------------------------------------------------------------
