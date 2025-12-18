@@ -20,6 +20,7 @@ use App\Models\Category;
 use App\Models\Faq;
 use App\Models\FlashsaleItem;
 use App\Models\Footer;
+use App\Models\PricelistReseller;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\Reseller;
@@ -208,6 +209,18 @@ class MasterAPIController extends Controller
 
         return response()->json([
             'data' => $resellers
+        ], 200);
+    }
+
+    /**
+     * Pricelist Resellers
+     */
+    public function getPricelistResellers()
+    {
+        $priceListResellers = PricelistReseller::all();
+
+        return response()->json([
+            'data' => $priceListResellers
         ], 200);
     }
 
