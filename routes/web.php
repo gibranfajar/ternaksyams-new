@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
     Route::patch('variants/{variant}/toggle-status', [ProductController::class, 'toggleStatus'])->name('variants.toggleStatus');
     Route::resource('flash-sales', FlashSaleController::class);
+    Route::patch('/flash-sales/{flashSale}/toggle-status', [FlashSaleController::class, 'toggleStatus'])->name('flash-sales.toggleStatus');
     Route::get('/variants/{variant}/sizes', [FlashSaleController::class, 'getSizes']);
 
 

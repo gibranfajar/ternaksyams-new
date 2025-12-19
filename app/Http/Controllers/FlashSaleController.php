@@ -313,4 +313,14 @@ class FlashSaleController extends Controller
 
         return response()->json($sizes);
     }
+
+    public function toggleStatus(FlashSale $flashSale)
+    {
+        $flashSale->status = $flashSale->status == 'ongoing' ? 'draft' : 'ongoing';
+        $flashSale->save();
+
+        return redirect()
+            ->route('flash-sales.index')
+            ->with('success', 'Status flash sale berhasil diubah');
+    }
 }

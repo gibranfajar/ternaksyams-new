@@ -35,6 +35,7 @@
                                         <th>Start Date</th>
                                         <th>End Date</th>
                                         <th>Status</th>
+                                        <th>Active</th>
                                         <th style="width: 10%" class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -56,6 +57,22 @@
                                                 <span class="badge {{ $statusColors[$item->status] ?? 'bg-secondary' }}">
                                                     {{ ucfirst($item->status) }}
                                                 </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center align-items-center">
+                                                    <form action="{{ route('flash-sales.toggleStatus', $item->id) }}"
+                                                        method="POST" class="m-0 p-0">
+                                                        @csrf
+                                                        @method('PATCH')
+
+                                                        <div class="form-check form-switch m-0">
+                                                            <input class="form-check-input cursor-pointer" type="checkbox"
+                                                                onchange="this.form.submit()"
+                                                                {{ $item->status == 'ongoing' ? 'checked' : '' }}
+                                                                title="Toggle Popup">
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </td>
                                             <td class="d-flex justify-content-center align-items-center gap-2">
                                                 <button type="button" class="btn btn-info btn-sm me-1"
