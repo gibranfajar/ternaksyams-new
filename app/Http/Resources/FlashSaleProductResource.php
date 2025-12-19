@@ -17,6 +17,9 @@ class FlashSaleProductResource extends JsonResource
         return [
             'id' => $this->id,
 
+            'start_date' => $this->flashSale->start_date,
+            'end_date' => $this->flashSale->end_date,
+
             'variant_id' => $this->variant_id,
             'variant_name' => $this->variant->name,
             'variant_slug' => $this->variant->slug,
