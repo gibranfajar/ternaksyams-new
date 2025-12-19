@@ -47,7 +47,6 @@ class FlashSaleController extends Controller
     public function store(Request $request)
     {
         try {
-
             $request->validate([
                 'title' => 'required|string',
                 'start_date' => 'required|date',
@@ -55,18 +54,29 @@ class FlashSaleController extends Controller
                 'selected_products' => 'required|array',
             ]);
 
+            /** ============================
+             *  CEK FLASH SALE TANGGAL SAMA
+             *  ============================ */
+            $exists = FlashSale::where(function ($q) use ($request) {
+                $q->where('start_date', '<=', $request->end_date)
+                    ->where('end_date', '>=', $request->start_date);
+            })->exists();
+
+            if ($exists) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Sudah ada flash sale yang berlangsung pada tanggal tersebut.');
+            }
+
+            /** ============================
+             *  SIMPAN FLASH SALE
+             *  ============================ */
             DB::transaction(function () use ($request) {
 
-                /** =======================
-                 *  STATUS FLASH SALE
-                 *  ======================= */
                 $status = now()->between($request->start_date, $request->end_date)
                     ? 'ongoing'
                     : 'draft';
 
-                /** =======================
-                 *  CREATE FLASH SALE
-                 *  ======================= */
                 $flashSale = FlashSale::create([
                     'title'       => $request->title,
                     'slug'        => Str::slug($request->title),
@@ -76,16 +86,10 @@ class FlashSaleController extends Controller
                     'status'      => $status,
                 ]);
 
-                /** =======================
-                 *  LOOP SELECTED PRODUCTS
-                 *  ======================= */
                 foreach ($request->selected_products as $product) {
 
                     $variantId = $product['variant_id'];
 
-                    /** =======================
-                     *  LOOP SIZES
-                     *  ======================= */
                     foreach ($product['sizes'] as $size) {
 
                         $variantSize = VariantSize::lockForUpdate()
@@ -94,7 +98,6 @@ class FlashSaleController extends Controller
                         $discount = (int) $size['discount'];
                         $qty      = (int) $size['qty'];
 
-                        // VALIDASI STOK
                         if ($variantSize->stock < $qty) {
                             throw new \Exception(
                                 "Stok tidak cukup untuk size {$variantSize->size->label}"
@@ -104,21 +107,15 @@ class FlashSaleController extends Controller
                         $price = $variantSize->price;
                         $flashsalePrice = $price - ($price * $discount / 100);
 
-                        /** =======================
-                         *  INSERT FLASHSALE ITEM
-                         *  ======================= */
                         FlashSaleItem::create([
                             'flashsale_id'    => $flashSale->id,
                             'variant_id'      => $variantId,
-                            'variantsize_id' => $variantSize->id,
+                            'variantsize_id'  => $variantSize->id,
                             'stock'           => $qty,
                             'discount'        => $discount,
                             'flashsale_price' => $flashsalePrice,
                         ]);
 
-                        /** =======================
-                         *  KURANGI STOK
-                         *  ======================= */
                         $variantSize->decrement('stock', $qty);
                     }
                 }
@@ -134,7 +131,6 @@ class FlashSaleController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
-
 
 
 
@@ -191,6 +187,22 @@ class FlashSaleController extends Controller
                 'selected_products' => 'required|array',
             ]);
 
+            // ============================
+            // CEK TANGGAL OVERLAP
+            // ============================
+            $exists = FlashSale::where('id', '!=', $flashSale->id)
+                ->where(function ($q) use ($request) {
+                    $q->where('start_date', '<=', $request->end_date)
+                        ->where('end_date', '>=', $request->start_date);
+                })
+                ->exists();
+
+            if ($exists) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Sudah ada flash sale lain pada rentang tanggal tersebut.');
+            }
+
             if ($flashSale->status === 'ongoing') {
                 return redirect()
                     ->route('flash-sales.index')
@@ -199,9 +211,7 @@ class FlashSaleController extends Controller
 
             DB::transaction(function () use ($request, $flashSale) {
 
-                /** =======================
-                 *  1. RESTORE STOCK LAMA
-                 *  ======================= */
+                // 1. RESTORE STOCK LAMA
                 $oldItems = $flashSale->items()->get();
 
                 foreach ($oldItems as $item) {
@@ -209,9 +219,7 @@ class FlashSaleController extends Controller
                         ->increment('stock', $item->stock);
                 }
 
-                /** =======================
-                 *  2. UPDATE FLASH SALE
-                 *  ======================= */
+                // 2. UPDATE DATA FLASH SALE
                 $status = now()->between($request->start_date, $request->end_date)
                     ? 'ongoing'
                     : 'draft';
@@ -225,28 +233,23 @@ class FlashSaleController extends Controller
                     'status'      => $status,
                 ]);
 
-                /** =======================
-                 *  3. DELETE ITEMS LAMA
-                 *  ======================= */
+                // 3. DELETE ITEM LAMA
                 $flashSale->items()->delete();
 
-                /** =======================
-                 *  4. INSERT ITEMS BARU
-                 *  ======================= */
+                // 4. INSERT ITEM BARU
                 foreach ($request->selected_products as $product) {
 
                     $variantId = $product['variant_id'];
 
                     foreach ($product['sizes'] as $size) {
 
-                        $variantSize = VariantSize::lockForUpdate()->findOrFail(
-                            $size['variant_size_id']
-                        );
+                        $variantSize = VariantSize::lockForUpdate()
+                            ->findOrFail($size['variant_size_id']);
 
                         $discount = (int) $size['discount'];
                         $qty      = (int) $size['qty'];
 
-                        // VALIDASI STOK
+                        // Validasi stok
                         if ($variantSize->stock < $qty) {
                             throw new \Exception(
                                 "Stok tidak cukup untuk size {$variantSize->size->label}"
@@ -259,15 +262,13 @@ class FlashSaleController extends Controller
                         FlashSaleItem::create([
                             'flashsale_id'     => $flashSale->id,
                             'variant_id'       => $variantId,
-                            'variantsize_id'  => $variantSize->id,
+                            'variantsize_id'   => $variantSize->id,
                             'stock'            => $qty,
                             'discount'         => $discount,
                             'flashsale_price'  => $flashsalePrice,
                         ]);
 
-                        /** =======================
-                         *  5. KURANGI STOK BARU
-                         *  ======================= */
+                        // 5. KURANGI STOCK BARU
                         $variantSize->decrement('stock', $qty);
                     }
                 }
@@ -283,7 +284,6 @@ class FlashSaleController extends Controller
                 ->with('error', $e->getMessage());
         }
     }
-
 
 
     /**
