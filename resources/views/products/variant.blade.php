@@ -114,82 +114,87 @@
     </div>
 </div>
 
-<script>
-    $(document).ready(function() {
-        function reindexAll() {
-            $(".variant-item").each(function(vIndex) {
-                $(this).find("h6.card-title").text("Variant " + (vIndex + 1));
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
-                // images
-                $(this).find("input[type=file]").attr("name", "variants[" + vIndex + "][images][]");
+    <script>
+        $(document).ready(function() {
+            function reindexAll() {
+                $(".variant-item").each(function(vIndex) {
+                    $(this).find("h6.card-title").text("Variant " + (vIndex + 1));
 
-                // flavour
-                $(this).find("select[name*='[flavour]']").attr("name", "variants[" + vIndex +
-                    "][flavour]");
+                    // images
+                    $(this).find("input[type=file]").attr("name", "variants[" + vIndex + "][images][]");
 
-                // category
-                $(this).find("select[name*='[category]']").attr("name", "variants[" + vIndex +
-                    "][category]");
+                    // flavour
+                    $(this).find("select[name*='[flavour]']").attr("name", "variants[" + vIndex +
+                        "][flavour]");
 
-                // sku
-                $(this).find("input[name*='[sku]']").attr("name", "variants[" + vIndex + "][sku]");
+                    // category
+                    $(this).find("select[name*='[category]']").attr("name", "variants[" + vIndex +
+                        "][category]");
 
-                // size items
-                $(this).find(".size-item").each(function(sIndex) {
-                    $(this).find("select[name*='[id]']").attr("name", "variants[" + vIndex +
-                        "][sizes][" + sIndex + "][id]");
-                    $(this).find("input[name*='[price]']").attr("name", "variants[" + vIndex +
-                        "][sizes][" + sIndex + "][price]");
-                    $(this).find("input[name*='[stock]']").attr("name", "variants[" + vIndex +
-                        "][sizes][" + sIndex + "][stock]");
-                    $(this).find("input[name*='[discount]']").attr("name", "variants[" +
-                        vIndex + "][sizes][" + sIndex + "][discount]");
-                    $(this).find("input[name*='[real_price]']").attr("name", "variants[" +
-                        vIndex + "][sizes][" + sIndex + "][real_price]");
+                    // sku
+                    $(this).find("input[name*='[sku]']").attr("name", "variants[" + vIndex + "][sku]");
+
+                    // size items
+                    $(this).find(".size-item").each(function(sIndex) {
+                        $(this).find("select[name*='[id]']").attr("name", "variants[" + vIndex +
+                            "][sizes][" + sIndex + "][id]");
+                        $(this).find("input[name*='[price]']").attr("name", "variants[" + vIndex +
+                            "][sizes][" + sIndex + "][price]");
+                        $(this).find("input[name*='[stock]']").attr("name", "variants[" + vIndex +
+                            "][sizes][" + sIndex + "][stock]");
+                        $(this).find("input[name*='[discount]']").attr("name", "variants[" +
+                            vIndex + "][sizes][" + sIndex + "][discount]");
+                        $(this).find("input[name*='[real_price]']").attr("name", "variants[" +
+                            vIndex + "][sizes][" + sIndex + "][real_price]");
+                    });
                 });
-            });
-        }
-
-        // Sortable
-        function makeSortable(container) {
-            container.sortable({
-                items: ".preview-item",
-                update: function() {
-                    reindexAll();
-                }
-            });
-        }
-
-        // sortable images
-        $(document).on("change", ".variant-image-input", function(e) {
-            let variantEl = $(this).closest(".variant-item");
-            let vIndex = $(".variant-item").index(variantEl);
-            let previewContainer = variantEl.find(".image-preview-list");
-            previewContainer.empty();
-
-            let files = e.target.files;
-
-            // cek maksimal 6 gambar
-            if (files.length > 6) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Maksimal hanya boleh upload 6 gambar per variant!',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'OK'
-                });
-
-                // reset file input biar kosong lagi
-                $(this).val("");
-                return;
             }
 
-            Array.from(files).forEach((file, index) => {
-                if (!file.type.match("image.*")) return;
+            // Sortable
+            function makeSortable(container) {
+                container.sortable({
+                    items: ".preview-item",
+                    update: function() {
+                        reindexAll();
+                    }
+                });
+            }
 
-                let reader = new FileReader();
-                reader.onload = function(ev) {
-                    let preview = `
+            // sortable images
+            $(document).on("change", ".variant-image-input", function(e) {
+                let variantEl = $(this).closest(".variant-item");
+                let vIndex = $(".variant-item").index(variantEl);
+                let previewContainer = variantEl.find(".image-preview-list");
+                previewContainer.empty();
+
+                let files = e.target.files;
+
+                // cek maksimal 6 gambar
+                if (files.length > 6) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'Maksimal hanya boleh upload 6 gambar per variant!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // reset file input biar kosong lagi
+                    $(this).val("");
+                    return;
+                }
+
+                Array.from(files).forEach((file, index) => {
+                    if (!file.type.match("image.*")) return;
+
+                    let reader = new FileReader();
+                    reader.onload = function(ev) {
+                        let preview = `
                         <div class="col-2 mb-3 preview-item" data-index="${index}">
                             <div class="d-flex align-items-center justify-content-center">
                                 <img src="${ev.target.result}" class="img-fluid rounded">
@@ -197,118 +202,119 @@
                             </div>
                         </div>
                     `;
-                    previewContainer.append(preview);
-                };
-                reader.readAsDataURL(file);
+                        previewContainer.append(preview);
+                    };
+                    reader.readAsDataURL(file);
+                });
+
+                makeSortable(previewContainer);
+                reindexAll();
             });
 
-            makeSortable(previewContainer);
-            reindexAll();
-        });
 
+            // Add Variant
+            $("#btn-add-variant").on("click", function() {
+                let newVariant = $(".variant-item:first").clone();
 
-        // Add Variant
-        $("#btn-add-variant").on("click", function() {
-            let newVariant = $(".variant-item:first").clone();
+                // reset semua input kecuali button
+                newVariant.find("input:not([type=button]):not([type=submit]):not([type=hidden]), select")
+                    .val("");
 
-            // reset semua input kecuali button
-            newVariant.find("input:not([type=button]):not([type=submit]):not([type=hidden]), select")
-                .val("");
+                // reset file input (trik: replace dengan clone kosong)
+                newVariant.find("input[type=file]").each(function() {
+                    $(this).replaceWith($(this).clone());
+                });
 
-            // reset file input (trik: replace dengan clone kosong)
-            newVariant.find("input[type=file]").each(function() {
-                $(this).replaceWith($(this).clone());
+                // kosongkan preview image
+                newVariant.find(".image-preview-list").empty();
+
+                // kosongkan size list → tapi sisain 1 size kosong
+                let sizeList = newVariant.find(".size-list");
+                sizeList.find(".size-item:gt(0)").remove(); // hapus semua kecuali pertama
+                sizeList.find("input, select").val(""); // clear value size pertama
+
+                // taruh di DOM
+                $(".variant-item:last").after(newVariant);
+
+                reindexAll();
             });
 
-            // kosongkan preview image
-            newVariant.find(".image-preview-list").empty();
 
-            // kosongkan size list → tapi sisain 1 size kosong
-            let sizeList = newVariant.find(".size-list");
-            sizeList.find(".size-item:gt(0)").remove(); // hapus semua kecuali pertama
-            sizeList.find("input, select").val(""); // clear value size pertama
-
-            // taruh di DOM
-            $(".variant-item:last").after(newVariant);
-
-            reindexAll();
-        });
-
-
-        // Remove Variant
-        $(document).on("click", ".btn-remove-variant", function() {
-            if ($(".variant-item").length > 1) {
-                $(this).closest(".variant-item").remove();
-                reindexAll();
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Minimal harus ada 1 variant!',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'OK'
-                });
-            }
-        });
-
-        // Add Size
-        $(document).on("click", ".btn-add-size", function() {
-            let variantEl = $(this).closest(".variant-body");
-            let sizeList = variantEl.find(".size-list");
-            let newSize = sizeList.find(".size-item:first").clone();
-            newSize.find("input, select").val("");
-            sizeList.append(newSize);
-            reindexAll();
-        });
-
-        // Remove Size
-        $(document).on("click", ".btn-remove-size", function() {
-            let variantEl = $(this).closest(".variant-body");
-            let sizeList = variantEl.find(".size-list");
-            if (sizeList.find(".size-item").length > 1) {
-                $(this).closest(".size-item").remove();
-                reindexAll();
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Oops...',
-                    text: 'Minimal harus ada 1 size!',
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: 'OK'
-                });
-            }
-        });
-
-        // Auto Calculate Real Price
-        $(document).on("input",
-            "input[name$='[price]'], input[name$='[discount]'], input[name$='[real_price]']",
-            function() {
-                let row = $(this).closest(".size-item"); // pastikan input berada di wrapper .size-item
-                let price = parseFloat(row.find("input[name$='[price]']").val()) || 0;
-                let discount = parseFloat(row.find("input[name$='[discount]']").val()) || 0;
-                let realPrice = parseFloat(row.find("input[name$='[real_price]']").val()) || 0;
-
-                if ($(this).attr("name").endsWith("[real_price]")) {
-                    // Jika user input real_price → hitung discount
-                    if (price > 0) {
-                        discount = ((price - realPrice) / price) * 100;
-                        row.find("input[name$='[discount]']").val(discount.toFixed(2));
-                    }
+            // Remove Variant
+            $(document).on("click", ".btn-remove-variant", function() {
+                if ($(".variant-item").length > 1) {
+                    $(this).closest(".variant-item").remove();
+                    reindexAll();
                 } else {
-                    // Jika user input price atau discount → hitung real_price
-                    realPrice = price - (price * discount / 100);
-                    row.find("input[name$='[real_price]']").val(realPrice.toFixed(0));
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'Minimal harus ada 1 variant!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
                 }
             });
 
+            // Add Size
+            $(document).on("click", ".btn-add-size", function() {
+                let variantEl = $(this).closest(".variant-body");
+                let sizeList = variantEl.find(".size-list");
+                let newSize = sizeList.find(".size-item:first").clone();
+                newSize.find("input, select").val("");
+                sizeList.append(newSize);
+                reindexAll();
+            });
 
-        reindexAll();
-    });
+            // Remove Size
+            $(document).on("click", ".btn-remove-size", function() {
+                let variantEl = $(this).closest(".variant-body");
+                let sizeList = variantEl.find(".size-list");
+                if (sizeList.find(".size-item").length > 1) {
+                    $(this).closest(".size-item").remove();
+                    reindexAll();
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops...',
+                        text: 'Minimal harus ada 1 size!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
 
-    // Toggle Variant
-    $(document).on("click", ".btn-toggle-variant", function() {
-        let variantBody = $(this).closest(".variant-item").find(".variant-body");
-        variantBody.slideToggle();
-        $(this).find("i").toggleClass("ti-chevron-down ti-chevron-up");
-    });
-</script>
+            // Auto Calculate Real Price
+            $(document).on("input",
+                "input[name$='[price]'], input[name$='[discount]'], input[name$='[real_price]']",
+                function() {
+                    let row = $(this).closest(".size-item"); // pastikan input berada di wrapper .size-item
+                    let price = parseFloat(row.find("input[name$='[price]']").val()) || 0;
+                    let discount = parseFloat(row.find("input[name$='[discount]']").val()) || 0;
+                    let realPrice = parseFloat(row.find("input[name$='[real_price]']").val()) || 0;
+
+                    if ($(this).attr("name").endsWith("[real_price]")) {
+                        // Jika user input real_price → hitung discount
+                        if (price > 0) {
+                            discount = ((price - realPrice) / price) * 100;
+                            row.find("input[name$='[discount]']").val(discount.toFixed(2));
+                        }
+                    } else {
+                        // Jika user input price atau discount → hitung real_price
+                        realPrice = price - (price * discount / 100);
+                        row.find("input[name$='[real_price]']").val(realPrice.toFixed(0));
+                    }
+                });
+
+
+            reindexAll();
+        });
+
+        // Toggle Variant
+        $(document).on("click", ".btn-toggle-variant", function() {
+            let variantBody = $(this).closest(".variant-item").find(".variant-body");
+            variantBody.slideToggle();
+            $(this).find("i").toggleClass("ti-chevron-down ti-chevron-up");
+        });
+    </script>
+@endpush
