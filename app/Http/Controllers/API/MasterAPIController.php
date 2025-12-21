@@ -434,8 +434,6 @@ class MasterAPIController extends Controller
      */
     public function detailFlashSaleProduct($slug)
     {
-        $now = now();
-
         $variants = Variant::with([
             'sizes.size',
             'flavour',
