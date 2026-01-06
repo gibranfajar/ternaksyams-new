@@ -9,6 +9,7 @@ use App\Models\BrandFeature;
 use App\Models\BrandHowitwork;
 use App\Models\BrandProductsidebar;
 use App\Models\BrandSize;
+use App\Models\BrandSlider;
 use App\Models\BrandTestimonial;
 use App\Models\BrandVariant;
 use Illuminate\Http\Request;
@@ -84,6 +85,21 @@ class BrandController extends Controller
             if ($request->hasFile('detail_banner')) {
                 $bannerPath = $request->file('detail_banner')->store('brand_banners', 'public');
             }
+
+            // === Simpan ke brand sliders ===
+            if ($request->has('sliders')) {
+                foreach ($request->sliders as $slider) {
+                    if (isset($slider['image'])) {
+                        $path = $slider['image']->store('brand_sliders', 'public');
+
+                        BrandSlider::create([
+                            'brand_id' => $brand->id,
+                            'image' => $path
+                        ]);
+                    }
+                }
+            }
+
 
             BrandDetail::create([
                 'brand_id' => $brand->id,
@@ -237,6 +253,56 @@ class BrandController extends Controller
                 }
             }
 
+            // UPDATE OLD SLIDERS
+            if ($request->has('old_sliders')) {
+                foreach ($request->old_sliders as $id => $file) {
+                    if ($file) {
+                        $slider = BrandSlider::find($id);
+
+                        if ($slider) {
+                            // upload dulu
+                            $path = $file->store('brand_sliders', 'public');
+
+                            // hapus file lama
+                            if ($slider->image && Storage::disk('public')->exists($slider->image)) {
+                                Storage::disk('public')->delete($slider->image);
+                            }
+
+                            // update db
+                            $slider->update(['image' => $path]);
+                        }
+                    }
+                }
+            }
+
+
+            // DELETE SLIDERS
+            if ($request->has('delete_sliders')) {
+                $sliders = BrandSlider::whereIn('id', $request->delete_sliders)->get();
+
+                foreach ($sliders as $slider) {
+                    if ($slider->image && Storage::disk('public')->exists($slider->image)) {
+                        Storage::disk('public')->delete($slider->image);
+                    }
+
+                    $slider->delete();
+                }
+            }
+
+
+            // ADD NEW SLIDERS
+            if ($request->has('sliders')) {
+                foreach ($request->sliders as $item) {
+                    if (!empty($item['image'])) {
+                        $path = $item['image']->store('brand_sliders', 'public');
+
+                        BrandSlider::create([
+                            'brand_id' => $brand->id,
+                            'image' => $path
+                        ]);
+                    }
+                }
+            }
 
             // === 4️⃣ Detail ===
             $detail = $brand->detail;

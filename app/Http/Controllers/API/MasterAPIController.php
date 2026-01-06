@@ -294,7 +294,7 @@ class MasterAPIController extends Controller
      */
     public function detailBrand($slug)
     {
-        $brand = Brand::with('sizes', 'variants', 'detail', 'testimonial', 'feature', 'productsidebar', 'about', 'howitwork', 'testimonialBrands')->where('slug', $slug)->first();
+        $brand = Brand::with('sizes', 'variants', 'detail', 'sliders', 'testimonial', 'feature', 'productsidebar', 'about', 'howitwork', 'testimonialBrands')->where('slug', $slug)->first();
         return response()->json(['data' => $brand], 200);
     }
 

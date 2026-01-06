@@ -29,6 +29,11 @@ class Brand extends Model
         return $this->hasOne(BrandDetail::class);
     }
 
+    public function sliders()
+    {
+        return $this->hasMany(BrandSlider::class);
+    }
+
     public function feature()
     {
         return $this->hasOne(BrandFeature::class);

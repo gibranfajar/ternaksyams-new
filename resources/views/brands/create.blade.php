@@ -137,7 +137,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="main_color" class="form-label">Main Color</label>
                                         <input type="color" class="form-control form-control-color" id="main_color"
@@ -149,6 +149,16 @@
                                             name="accent_color" value="{{ old('accent_color') }}">
                                     </div>
                                 </div>
+
+                                <div class="d-flex align-items-center justify-content-between mt-4 mb-3">
+                                    <h5 class="mb-0 fw-semibold">Sliders</h5>
+
+                                    <button class="btn btn-outline-success" type="button" id="addSlider">
+                                        Add Slider
+                                    </button>
+                                </div>
+
+                                <div class="row" id="slider-wrapper"></div>
 
                                 <hr>
 
@@ -448,6 +458,69 @@
                         'd-none');
                 };
                 reader.readAsDataURL(event.target.files[0]);
+            });
+        });
+    </script>
+
+    <script>
+        let sliderIndex = 0;
+
+        document.getElementById('addSlider').addEventListener('click', function() {
+            sliderIndex++;
+
+            const wrapper = document.getElementById('slider-wrapper');
+
+            const col = document.createElement('div');
+            col.className = 'col-md-4 mb-3';
+
+            col.innerHTML = `
+                <div class="card h-100">
+                    <div class="card-body position-relative">
+
+                        <button type="button" 
+                                class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-slider">
+                            &times;
+                        </button>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Slider Image</label>
+                            <input type="file" 
+                                name="sliders[${sliderIndex}][image]" 
+                                class="form-control slider-input" 
+                                accept="image/*">
+                        </div>
+
+                        <div class="ratio ratio-16x9 bg-light rounded overflow-hidden d-none">
+                            <img src="" class="w-100 h-100 object-fit-cover slider-preview" alt="Preview">
+                        </div>
+
+                    </div>
+                </div>
+            `;
+
+            wrapper.appendChild(col);
+
+            const removeBtn = col.querySelector('.remove-slider');
+            const input = col.querySelector('.slider-input');
+            const preview = col.querySelector('.slider-preview');
+            const previewWrapper = col.querySelector('.ratio');
+
+            // remove slider
+            removeBtn.addEventListener('click', function() {
+                col.remove();
+            });
+
+            // preview image
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        previewWrapper.classList.remove('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
         });
     </script>

@@ -36,8 +36,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="myTable" class="table table-bordered table-striped align-middle"
-                                    style="font-size: 14px">
+                                <table id="myTable" class="table table-bordered table-striped align-middle text-nowrap"
+                                    style="font-size: 14px; width: 100%">
                                     <thead>
                                         <tr>
                                             <th style="width: 5%" class="text-center">No</th>

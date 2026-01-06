@@ -17,7 +17,7 @@
         if ($('#myTable').length) {
             $('#myTable').DataTable({
                 dom: 'lfrtip',
-                responsive: true,
+                scrollX: true,
                 autoWidth: false
             });
         }
