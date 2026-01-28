@@ -264,7 +264,7 @@ class TransactionController extends Controller
             ]);
 
             // Buat link pembayaran Midtrans
-            $paymentUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/' . $snapToken;
+            $paymentUrl = 'https://app.midtrans.com/snap/v2/vtweb/' . $snapToken;
 
             // Kirim email invoice
             Mail::to($request->email)->queue(new OrderInvoiceMail($order, $paymentUrl));

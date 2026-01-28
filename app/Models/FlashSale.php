@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FlashSale extends Model
 {
-    use SoftDeletes;
+    // use SoftDeletes;
 
     protected $table = 'flash_sales';
 

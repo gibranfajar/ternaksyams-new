@@ -18,7 +18,7 @@ use App\Models\Benefit;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Faq;
-use App\Models\FlashsaleItem;
+use App\Models\FlashSaleItem;
 use App\Models\Footer;
 use App\Models\PricelistReseller;
 use App\Models\Product;
@@ -336,6 +336,7 @@ class MasterAPIController extends Controller
     public function products()
     {
         $variants = Variant::with(['sizes.size', 'product.brand', 'category', 'images'])
+            ->whereDoesntHave('flashSaleItems')
             ->orderBy('id', 'desc')
             ->get();
 
@@ -350,7 +351,7 @@ class MasterAPIController extends Controller
      */
     public function detailProduct($slug)
     {
-        $variants = Variant::with(['sizes', 'flavour', 'product'])->where('slug', $slug)->get();
+        $variants = Variant::with(['sizes', 'flavour', 'product'])->where('slug', $slug)->whereDoesntHave('flashSaleItems')->get();
         $data = ProductDetailResource::collection($variants);
 
         return response()->json(['data' => $data], 200);
@@ -399,7 +400,7 @@ class MasterAPIController extends Controller
     {
         $now = now();
 
-        $items = FlashsaleItem::with([
+        $items = FlashSaleItem::with([
             'variant.product.brand',
             'variant.category',
             'variant.images',

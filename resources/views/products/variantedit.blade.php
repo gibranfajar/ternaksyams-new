@@ -8,6 +8,7 @@
 
         <!-- Variant -->
         @foreach ($product->variants as $vIndex => $variant)
+            <input type="hidden" name="variants[{{ $vIndex }}][id]" value="{{ $variant->id }}">
             <div class="card mb-3 variant-item">
                 <div class="card-body">
                     <!-- Variant Header -->

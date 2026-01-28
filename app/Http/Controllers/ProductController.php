@@ -11,6 +11,7 @@ use App\Models\Variant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -99,7 +100,6 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('success', 'Product created successfully.');
         } catch (\Throwable $th) {
-            dd($th);
             return redirect()->route('products.index')->with('error', 'Failed to create product.');
         }
     }
@@ -130,11 +130,14 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         try {
+
             DB::transaction(function () use ($request, $product) {
 
-                // 1. Update gizi image jika ada file baru
+                // 1. Update gizi image
                 if ($request->hasFile('gizi_path')) {
-                    Storage::disk('public')->delete($product->gizi_path);
+                    if ($product->gizi_path) {
+                        Storage::disk('public')->delete($product->gizi_path);
+                    }
                     $product->gizi_path = $request->file('gizi_path')->store('gizi', 'public');
                 }
 
@@ -149,29 +152,47 @@ class ProductController extends Controller
 
                 $variantIds = [];
 
-                // 3. Loop variants dari request
                 foreach ($request->variants as $variantData) {
 
-                    $flavour = Flavour::find($variantData['flavour']);
+                    $flavour = Flavour::findOrFail($variantData['flavour']);
                     $name = $product->name . ' - ' . $flavour->name;
 
-                    // Update atau buat variant baru
-                    $variant = $product->variants()->updateOrCreate(
-                        ['flavour_id' => $variantData['flavour']],
-                        [
+                    // =========================
+                    // UPDATE / CREATE VARIANT
+                    // =========================
+                    if (isset($variantData['id'])) {
+                        // UPDATE
+                        $variant = $product->variants()
+                            ->where('id', $variantData['id'])
+                            ->firstOrFail();
+
+                        $variant->update([
                             'name'        => $name,
                             'slug'        => Str::slug($name),
                             'category_id' => $variantData['category'],
+                            'flavour_id'  => $variantData['flavour'],
                             'sku'         => $variantData['sku'],
-                        ]
-                    );
+                        ]);
+                    } else {
+                        // CREATE
+                        $variant = $product->variants()->create([
+                            'name'        => $name,
+                            'slug'        => Str::slug($name),
+                            'category_id' => $variantData['category'],
+                            'flavour_id'  => $variantData['flavour'],
+                            'sku'         => $variantData['sku'],
+                        ]);
+                    }
 
                     $variantIds[] = $variant->id;
 
-                    // 3a. Update atau buat sizes
+                    // =========================
+                    // SIZES
+                    // =========================
                     $sizeIds = [];
                     if (isset($variantData['sizes']) && is_array($variantData['sizes'])) {
                         foreach ($variantData['sizes'] as $sizeData) {
+
                             $size = $variant->sizes()->updateOrCreate(
                                 ['size_id' => $sizeData['id']],
                                 [
@@ -181,23 +202,23 @@ class ProductController extends Controller
                                     'price_after_discount' => $sizeData['discount'] != null ? $sizeData['real_price'] : null,
                                 ]
                             );
+
                             $sizeIds[] = $size->id;
                         }
 
-                        // Hapus sizes lama yang tidak ada di request
                         $variant->sizes()->whereNotIn('id', $sizeIds)->delete();
                     }
 
-                    // 3b. Update images
+                    // =========================
+                    // IMAGES
+                    // =========================
                     if (isset($variantData['images']) && is_array($variantData['images'])) {
 
-                        // Hapus file lama dari storage dan database
                         $variant->images->each(function ($img) {
                             Storage::disk('public')->delete($img->image_path);
                             $img->delete();
                         });
 
-                        // Simpan gambar baru
                         foreach ($variantData['images'] as $imageFile) {
                             $path = $imageFile->store('products', 'public');
                             $variant->images()->create(['image_path' => $path]);
@@ -205,16 +226,36 @@ class ProductController extends Controller
                     }
                 }
 
-                // 4. Hapus variant lama yang tidak ada di request
+                // 4. Hapus variant lama
                 $product->variants()->whereNotIn('id', $variantIds)->delete();
             });
 
             return redirect()->route('products.index')->with('success', 'Product updated successfully.');
         } catch (\Throwable $th) {
-            dd($th);
-            return redirect()->route('products.index')->with('error', 'Failed to update product.');
+
+            Log::error('FAILED UPDATE PRODUCT', [
+                'product_id' => $product->id,
+                'error' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            // Mapping error ke bahasa user
+            if (str_contains($th->getMessage(), 'variants_sku_unique')) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'SKU sudah digunakan. Silakan gunakan SKU lain.');
+            }
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan produk. Periksa data variant.');
         }
     }
+
 
 
 

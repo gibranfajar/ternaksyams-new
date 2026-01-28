@@ -472,7 +472,7 @@
                 $(this).closest('.size-item').remove();
             });
 
-            let variantCount = 1;
+            let variantCount = {{ count($brand->variants) }};
 
             // Add Variant
             $('.btn-add-variant').on('click', function() {

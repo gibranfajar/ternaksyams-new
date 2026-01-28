@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\FlashSale;
-use App\Models\FlashsaleItem;
+use App\Models\FlashSaleItem;
 use App\Models\Product;
 use App\Models\VariantSize;
 use Illuminate\Http\Request;
@@ -291,8 +291,50 @@ class FlashSaleController extends Controller
      */
     public function destroy(FlashSale $flashSale)
     {
-        //
+        try {
+
+            DB::transaction(function () use ($flashSale) {
+
+                // Ambil semua item flash sale + lock
+                $items = FlashSaleItem::where('flashsale_id', $flashSale->id)
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($items as $item) {
+
+                    $variantSize = VariantSize::lockForUpdate()
+                        ->findOrFail($item->variantsize_id);
+
+                    // Kembalikan stok
+                    $variantSize->increment('stock', $item->stock);
+
+                    // Hapus item
+                    $item->delete();
+                }
+
+                // Hapus flash sale utama
+                $flashSale->delete();
+            });
+
+            return redirect()
+                ->route('flash-sales.index')
+                ->with('success', 'Flash Sale berhasil dihapus dan stok dikembalikan.');
+        } catch (\Throwable $e) {
+
+            Log::error('FAILED DELETE FLASH SALE', [
+                'flashsale_id' => $flashSale->id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal menghapus Flash Sale. Silakan coba lagi.');
+        }
     }
+
 
     public function getSizes($variantId)
     {

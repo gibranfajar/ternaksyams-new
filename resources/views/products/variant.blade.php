@@ -297,7 +297,7 @@
                         // Jika user input real_price → hitung discount
                         if (price > 0) {
                             discount = ((price - realPrice) / price) * 100;
-                            row.find("input[name$='[discount]']").val(discount.toFixed(2));
+                            row.find("input[name$='[discount]']").val(discount.toFixed(0));
                         }
                     } else {
                         // Jika user input price atau discount → hitung real_price

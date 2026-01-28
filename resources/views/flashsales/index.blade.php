@@ -85,6 +85,14 @@
                                                     class="btn btn-warning btn-sm me-1">
                                                     <i class="ti ti-edit"></i>
                                                 </a>
+                                                <form action="{{ route('flash-sales.destroy', $item->id) }}"
+                                                    method="post">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm btn-delete">
+                                                        <i class="ti ti-trash"></i>
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     @endforeach

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Shipping;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,18 @@ class OrderController extends Controller
     {
         $orders = Order::with('voucher')->orderBy('id', 'desc')->get();
         return view('orders.index', compact('orders'));
+    }
+
+    public function invoice($id)
+    {
+        $order = Order::findOrFail($id)->load('items');
+
+        $pdf = Pdf::loadView('orders.invoice', compact('order'))
+            ->setPaper('a4', 'portrait');
+
+        $filename = str_replace(['/', '\\'], '-', $order->invoice);
+
+        return $pdf->stream("Invoice-{$filename}.pdf");
     }
 
     /**
@@ -89,10 +102,6 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-
-
-
-
 
     /**
      * Request order to komship

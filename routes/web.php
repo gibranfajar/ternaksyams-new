@@ -28,8 +28,6 @@ use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TutorialController;
 use App\Http\Controllers\VideoPlayerController;
 use App\Http\Controllers\VoucherController;
-use App\Mail\TestEmail;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
@@ -67,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/promotions/{id}/toggle-popup', [PromotionController::class, 'togglePopup'])->name('promotions.togglePopup');
 
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('orders/invoice/{id}', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::get('orders/pickup', [OrderController::class, 'pickup'])->name('orders.pickup');
     Route::get('orders/print-label', [OrderController::class, 'printLabel'])->name('orders.printLabel');
     Route::post('orders/labelstore', [OrderController::class, 'labelStore'])->name('orders.labelstore');
